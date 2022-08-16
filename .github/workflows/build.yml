@@ -56,6 +56,9 @@ jobs:
 
       - name: Build welcome-member-email-service
         run: |
+          STEP_ID=welcome-member-email-service
+          STEP_START=$(date +%s)
+
           # build
           mvn clean verify -pl welcome-member-email-service -Pcode-coverage -Pstatic-code-analysis
           # verify pacts
@@ -74,8 +77,13 @@ jobs:
           # tag pacts as production
           docker run --rm --net host ${PACT_CLI_IMG} broker create-version-tag --pacticipant welcome-member-email-service --version `git rev-parse --short HEAD` --tag prod --broker-base-url ${PACT_BROKER_URL} --broker-username=rw_user --broker-password=rw_pass
 
+          buildevents step $TRACE_ID $STEP_ID $STEP_START $STEP_ID
+
       - name: Build special-membership-service
         run: |
+          STEP_ID=special-membership-service
+          STEP_START=$(date +%s)
+
           # build
           mvn clean verify -pl special-membership-service -Pcode-coverage -Pstatic-code-analysis
           # verify pacts
@@ -94,8 +102,13 @@ jobs:
           # tag pacts as production
           docker run --rm --net host ${PACT_CLI_IMG} broker create-version-tag --pacticipant special-membership-service --version `git rev-parse --short HEAD` --tag prod --broker-base-url ${PACT_BROKER_URL} --broker-username=rw_user --broker-password=rw_pass
 
+          buildevents step $TRACE_ID $STEP_ID $STEP_START $STEP_ID
+
       - name: Build credit-score-service
         run: |
+          STEP_ID=credit-score-service
+          STEP_START=$(date +%s)
+
           # build
           mvn clean verify -pl credit-score-service -Pcode-coverage -Pstatic-code-analysis
           # verify pacts
@@ -106,6 +119,8 @@ jobs:
           ## no need to run since it doesn't create any pacts
           # tag pacts as production
           docker run --rm --net host ${PACT_CLI_IMG} broker create-version-tag --pacticipant credit-score-service --version `git rev-parse --short HEAD` --tag prod --broker-base-url ${PACT_BROKER_URL} --broker-username=rw_user --broker-password=rw_pass
+
+          buildevents step $TRACE_ID $STEP_ID $STEP_START $STEP_ID
 
       # NOTE: Turning off code coverage report given we are not Code Climate users
 
