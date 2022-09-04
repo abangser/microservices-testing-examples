@@ -7,6 +7,32 @@ orbs:
 
 commands:
 
+  install-xpath:
+    steps:
+      - run: sudo apt update
+      - run: sudo apt install libxml-xpath-perl
+
+  test-results:
+    parameters:
+      service:
+        type: string
+      phase:
+        type: string
+
+    steps:
+      - buildevents/add_context:
+          field_name: ci.reporting.<< parameters.phase >>.completed
+          field_value: $(xpath -q -e 'failsafe-summary/completed/text()'  << parameters.service >>/target/failsafe-reports/failsafe-summary.xml)
+      - buildevents/add_context:
+          field_name: ci.reporting.<< parameters.phase >>.errors
+          field_value: $(xpath -q -e 'failsafe-summary/errors/text()'  << parameters.service >>/target/failsafe-reports/failsafe-summary.xml)
+      - buildevents/add_context:
+          field_name: ci.reporting.<< parameters.phase >>.failures
+          field_value: $(xpath -q -e 'failsafe-summary/failures/text()'  << parameters.service >>/target/failsafe-reports/failsafe-summary.xml)
+      - buildevents/add_context:
+          field_name: ci.reporting.<< parameters.phase >>.skipped
+          field_value: $(xpath -q -e 'failsafe-summary/skipped/text()'  << parameters.service >>/target/failsafe-reports/failsafe-summary.xml)
+
   build:
     steps:
       - run:
@@ -15,18 +41,27 @@ commands:
             export BUILDEVENTS_SPAN_ID=$(echo ${CIRCLE_JOB}-${CIRCLE_NODE_INDEX} | sha256sum | awk '{print $1}')
             buildevents cmd ${CIRCLE_WORKFLOW_ID} ${BUILDEVENTS_SPAN_ID} 'build-credit-score-service' -- \
               mvn clean verify -pl credit-score-service -Pcode-coverage -Pstatic-code-analysis
+      - test-results:
+          phase: build
+          service: credit-score-service
       - run:
           name: build-special-membership-service
           command: |
             export BUILDEVENTS_SPAN_ID=$(echo ${CIRCLE_JOB}-${CIRCLE_NODE_INDEX} | sha256sum | awk '{print $1}')
             buildevents cmd ${CIRCLE_WORKFLOW_ID} ${BUILDEVENTS_SPAN_ID} 'build-special-membership-service' -- \
               mvn clean verify -pl special-membership-service -Pcode-coverage -Pstatic-code-analysis
+      - test-results:
+          phase: build
+          service: special-membership-service
       - run:
           name: build-welcome-member-email-service
           command: |
             export BUILDEVENTS_SPAN_ID=$(echo ${CIRCLE_JOB}-${CIRCLE_NODE_INDEX} | sha256sum | awk '{print $1}')
             buildevents cmd ${CIRCLE_WORKFLOW_ID} ${BUILDEVENTS_SPAN_ID} 'build-welcome-member-email-service' -- \
               mvn clean verify -pl welcome-member-email-service -Pcode-coverage -Pstatic-code-analysis
+      - test-results:
+          phase: build
+          service: welcome-member-email-service
 
   verify_provider_pacts:
     steps:
@@ -202,6 +237,7 @@ jobs:
       - buildevents/with_job_span:
           steps:
           - checkout
+          - install-xpath
           - build
 
   test:
