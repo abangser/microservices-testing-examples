@@ -11,97 +11,169 @@ commands:
     steps:
       - run:
           name: build-credit-score-service
-          command: mvn clean verify -pl credit-score-service -Pcode-coverage -Pstatic-code-analysis
+          command: |
+            export BUILDEVENTS_SPAN_ID=$(echo ${CIRCLE_JOB}-${CIRCLE_NODE_INDEX} | sha256sum | awk '{print $1}')
+            buildevents cmd ${CIRCLE_WORKFLOW_ID} ${BUILDEVENTS_SPAN_ID} 'build-credit-score-service' -- \
+              mvn clean verify -pl credit-score-service -Pcode-coverage -Pstatic-code-analysis
       - run:
           name: build-special-membership-service
-          command: mvn clean verify -pl special-membership-service -Pcode-coverage -Pstatic-code-analysis
+          command: |
+            export BUILDEVENTS_SPAN_ID=$(echo ${CIRCLE_JOB}-${CIRCLE_NODE_INDEX} | sha256sum | awk '{print $1}')
+            buildevents cmd ${CIRCLE_WORKFLOW_ID} ${BUILDEVENTS_SPAN_ID} 'build-special-membership-service' -- \
+              mvn clean verify -pl special-membership-service -Pcode-coverage -Pstatic-code-analysis
       - run:
           name: build-welcome-member-email-service
-          command: mvn clean verify -pl welcome-member-email-service -Pcode-coverage -Pstatic-code-analysis
+          command: |
+            export BUILDEVENTS_SPAN_ID=$(echo ${CIRCLE_JOB}-${CIRCLE_NODE_INDEX} | sha256sum | awk '{print $1}')
+            buildevents cmd ${CIRCLE_WORKFLOW_ID} ${BUILDEVENTS_SPAN_ID} 'build-welcome-member-email-service' -- \
+              mvn clean verify -pl welcome-member-email-service -Pcode-coverage -Pstatic-code-analysis
 
   verify_provider_pacts:
     steps:
       - run:
           name: verify_provider_pacts-credit-score-service
-          command: mvn verify -pl credit-score-service -Pprovider-pacts -Dpact.verifier.publishResults=true -Dpact.provider.version=`git rev-parse --short HEAD` -Dpactbroker.tags=prod -Dpactbroker.user=rw_user -Dpactbroker.pass=rw_pass
+          command:  |
+            export BUILDEVENTS_SPAN_ID=$(echo ${CIRCLE_JOB}-${CIRCLE_NODE_INDEX} | sha256sum | awk '{print $1}')
+            buildevents cmd ${CIRCLE_WORKFLOW_ID} ${BUILDEVENTS_SPAN_ID} 'verify_provider_pacts-credit-score-service' -- \
+              mvn verify -pl credit-score-service -Pprovider-pacts -Dpact.verifier.publishResults=true -Dpact.provider.version=`git rev-parse --short HEAD` -Dpactbroker.tags=prod -Dpactbroker.user=rw_user -Dpactbroker.pass=rw_pass
       - run:
           name: verify_provider_pacts-special-membership-service
-          command: mvn verify -pl special-membership-service -Pprovider-pacts -Dpact.verifier.publishResults=true -Dpact.provider.version=`git rev-parse --short HEAD` -Dpactbroker.tags=prod -Dpactbroker.user=rw_user -Dpactbroker.pass=rw_pass
+          command:  |
+            export BUILDEVENTS_SPAN_ID=$(echo ${CIRCLE_JOB}-${CIRCLE_NODE_INDEX} | sha256sum | awk '{print $1}')
+            buildevents cmd ${CIRCLE_WORKFLOW_ID} ${BUILDEVENTS_SPAN_ID} 'verify_provider_pacts-special-membership-service' -- \
+              mvn verify -pl special-membership-service -Pprovider-pacts -Dpact.verifier.publishResults=true -Dpact.provider.version=`git rev-parse --short HEAD` -Dpactbroker.tags=prod -Dpactbroker.user=rw_user -Dpactbroker.pass=rw_pass
       - run:
           name: verify_provider_pacts-welcome-member-email-service
-          command: echo "No pacts to verify"
+          command:  |
+            export BUILDEVENTS_SPAN_ID=$(echo ${CIRCLE_JOB}-${CIRCLE_NODE_INDEX} | sha256sum | awk '{print $1}')
+            buildevents cmd ${CIRCLE_WORKFLOW_ID} ${BUILDEVENTS_SPAN_ID} 'verify_provider_pacts-welcome-member-email-service' -- \
+              echo "No pacts to verify"
 
   create_pacts:
     steps:
       - run:
           name: create_pacts-credit-score-service
-          command: echo "No pacts to create"
+          command:  |
+            export BUILDEVENTS_SPAN_ID=$(echo ${CIRCLE_JOB}-${CIRCLE_NODE_INDEX} | sha256sum | awk '{print $1}')
+            buildevents cmd ${CIRCLE_WORKFLOW_ID} ${BUILDEVENTS_SPAN_ID} 'create_pacts-credit-score-service' -- \
+              echo "No pacts to create"
       - run:
           name: create_pacts-special-membership-service
-          command: mvn verify -pl special-membership-service -Pconsumer-pacts
+          command:  |
+            export BUILDEVENTS_SPAN_ID=$(echo ${CIRCLE_JOB}-${CIRCLE_NODE_INDEX} | sha256sum | awk '{print $1}')
+            buildevents cmd ${CIRCLE_WORKFLOW_ID} ${BUILDEVENTS_SPAN_ID} 'create_pacts-special-membership-service' -- \
+              mvn verify -pl special-membership-service -Pconsumer-pacts
       - run:
           name: create_pacts-welcome-member-email-service
-          command: mvn verify -pl welcome-member-email-service -Pconsumer-pacts
+          command:  |
+            export BUILDEVENTS_SPAN_ID=$(echo ${CIRCLE_JOB}-${CIRCLE_NODE_INDEX} | sha256sum | awk '{print $1}')
+            buildevents cmd ${CIRCLE_WORKFLOW_ID} ${BUILDEVENTS_SPAN_ID} 'create_pacts-welcome-member-email-service' -- \
+              mvn verify -pl welcome-member-email-service -Pconsumer-pacts
 
   publish_pacts:
     steps:
       - run:
           name: publish_pacts-credit-score-service
-          command: echo "no pacts to publish"
+          command:  |
+            export BUILDEVENTS_SPAN_ID=$(echo ${CIRCLE_JOB}-${CIRCLE_NODE_INDEX} | sha256sum | awk '{print $1}')
+            buildevents cmd ${CIRCLE_WORKFLOW_ID} ${BUILDEVENTS_SPAN_ID} 'publish_pacts-credit-score-service' -- \
+              echo "no pacts to publish"
       - run:
           name: publish_pacts-special-membership-service
-          command: docker run --rm --net host -v `pwd`/special-membership-service/target/pacts:/target/pacts ${PACT_CLI_IMG} publish /target/pacts --consumer-app-version `git rev-parse --short HEAD` --tag `git rev-parse --abbrev-ref HEAD` --broker-base-url ${PACT_BROKER_URL} --broker-username=rw_user --broker-password=rw_pass
+          command:  |
+            export BUILDEVENTS_SPAN_ID=$(echo ${CIRCLE_JOB}-${CIRCLE_NODE_INDEX} | sha256sum | awk '{print $1}')
+            buildevents cmd ${CIRCLE_WORKFLOW_ID} ${BUILDEVENTS_SPAN_ID} 'publish_pacts-special-membership-service' -- \
+              docker run --rm --net host -v `pwd`/special-membership-service/target/pacts:/target/pacts ${PACT_CLI_IMG} publish /target/pacts --consumer-app-version `git rev-parse --short HEAD` --tag `git rev-parse --abbrev-ref HEAD` --broker-base-url ${PACT_BROKER_URL} --broker-username=rw_user --broker-password=rw_pass
       - run:
           name: publish_pacts-welcome-member-email-service
-          command: docker run --rm --net host -v `pwd`/welcome-member-email-service/target/pacts:/target/pacts ${PACT_CLI_IMG} publish /target/pacts --consumer-app-version `git rev-parse --short HEAD` --tag `git rev-parse --abbrev-ref HEAD` --broker-base-url ${PACT_BROKER_URL} --broker-username=rw_user --broker-password=rw_pass
+          command:  |
+            export BUILDEVENTS_SPAN_ID=$(echo ${CIRCLE_JOB}-${CIRCLE_NODE_INDEX} | sha256sum | awk '{print $1}')
+            buildevents cmd ${CIRCLE_WORKFLOW_ID} ${BUILDEVENTS_SPAN_ID} 'publish_pacts-welcome-member-email-service' -- \
+              docker run --rm --net host -v `pwd`/welcome-member-email-service/target/pacts:/target/pacts ${PACT_CLI_IMG} publish /target/pacts --consumer-app-version `git rev-parse --short HEAD` --tag `git rev-parse --abbrev-ref HEAD` --broker-base-url ${PACT_BROKER_URL} --broker-username=rw_user --broker-password=rw_pass
 
   verify_provider_prod_pacts:
     steps:
       - run:
           name: verify_provider_prod_pacts-credit-score-service
-          command: echo "no pacts to verify"
+          command:  |
+            export BUILDEVENTS_SPAN_ID=$(echo ${CIRCLE_JOB}-${CIRCLE_NODE_INDEX} | sha256sum | awk '{print $1}')
+            buildevents cmd ${CIRCLE_WORKFLOW_ID} ${BUILDEVENTS_SPAN_ID} 'verify_provider_prod_pacts-credit-score-service' -- \
+              echo "no pacts to verify"
       - run:
           name: verify_provider_prod_pacts-special-membership-service
-          command: docker run --rm --net host ${PACT_CLI_IMG} broker create-version-tag --auto-create-version --pacticipant credit-score-service --version `git rev-parse --short HEAD` --tag prod --broker-base-url ${PACT_BROKER_URL} --broker-username=rw_user --broker-password=rw_pass
+          command:  |
+            export BUILDEVENTS_SPAN_ID=$(echo ${CIRCLE_JOB}-${CIRCLE_NODE_INDEX} | sha256sum | awk '{print $1}')
+            buildevents cmd ${CIRCLE_WORKFLOW_ID} ${BUILDEVENTS_SPAN_ID} 'verify_provider_prod_pacts-special-membership-service' -- \
+              docker run --rm --net host ${PACT_CLI_IMG} broker create-version-tag --auto-create-version --pacticipant credit-score-service --version `git rev-parse --short HEAD` --tag prod --broker-base-url ${PACT_BROKER_URL} --broker-username=rw_user --broker-password=rw_pass
       - run:
           name: verify_provider_prod_pacts-welcome-member-email-service
-          command: docker run --rm --net host ${PACT_CLI_IMG} broker create-version-tag --auto-create-version --pacticipant special-membership-service --version `git rev-parse --short HEAD` --tag prod --broker-base-url ${PACT_BROKER_URL} --broker-username=rw_user --broker-password=rw_pass
+          command:  |
+            export BUILDEVENTS_SPAN_ID=$(echo ${CIRCLE_JOB}-${CIRCLE_NODE_INDEX} | sha256sum | awk '{print $1}')
+            buildevents cmd ${CIRCLE_WORKFLOW_ID} ${BUILDEVENTS_SPAN_ID} 'verify_provider_prod_pacts-welcome-member-email-service' -- \
+              docker run --rm --net host ${PACT_CLI_IMG} broker create-version-tag --auto-create-version --pacticipant special-membership-service --version `git rev-parse --short HEAD` --tag prod --broker-base-url ${PACT_BROKER_URL} --broker-username=rw_user --broker-password=rw_pass
 
   verify_provider_dev_pacts:
     steps:
       - run:
           name: verify_provider_dev_pacts-credit-score-service
-          command: echo "no pacts to verify"
+          command:  |
+            export BUILDEVENTS_SPAN_ID=$(echo ${CIRCLE_JOB}-${CIRCLE_NODE_INDEX} | sha256sum | awk '{print $1}')
+            buildevents cmd ${CIRCLE_WORKFLOW_ID} ${BUILDEVENTS_SPAN_ID} 'verify_provider_dev_pacts-credit-score-service' -- \
+              echo "no pacts to verify"
       - run:
           name: verify_provider_dev_pacts-special-membership-service
-          command: mvn verify -pl credit-score-service -Pprovider-pacts -Dpact.verifier.publishResults=true -Dpact.provider.version=`git rev-parse --short HEAD` -Dpactbroker.consumers=special-membership-service -Dpactbroker.tags=`git rev-parse --abbrev-ref HEAD` -Dpactbroker.user=rw_user -Dpactbroker.pass=rw_pass
+          command:  |
+            export BUILDEVENTS_SPAN_ID=$(echo ${CIRCLE_JOB}-${CIRCLE_NODE_INDEX} | sha256sum | awk '{print $1}')
+            buildevents cmd ${CIRCLE_WORKFLOW_ID} ${BUILDEVENTS_SPAN_ID} 'verify_provider_dev_pacts-special-membership-service' -- \
+              mvn verify -pl credit-score-service -Pprovider-pacts -Dpact.verifier.publishResults=true -Dpact.provider.version=`git rev-parse --short HEAD` -Dpactbroker.consumers=special-membership-service -Dpactbroker.tags=`git rev-parse --abbrev-ref HEAD` -Dpactbroker.user=rw_user -Dpactbroker.pass=rw_pass
       - run:
           name: verify_provider_dev_pacts-welcome-member-email-service
-          command: mvn verify -pl special-membership-service -Pprovider-pacts -Dpact.verifier.publishResults=true -Dpact.provider.version=`git rev-parse --short HEAD` -Dpactbroker.consumers=welcome-member-email-service -Dpactbroker.tags=`git rev-parse --abbrev-ref HEAD` -Dpactbroker.user=rw_user -Dpactbroker.pass=rw_pass
+          command:  |
+            export BUILDEVENTS_SPAN_ID=$(echo ${CIRCLE_JOB}-${CIRCLE_NODE_INDEX} | sha256sum | awk '{print $1}')
+            buildevents cmd ${CIRCLE_WORKFLOW_ID} ${BUILDEVENTS_SPAN_ID} 'verify_provider_dev_pacts-welcome-member-email-service' -- \
+              mvn verify -pl special-membership-service -Pprovider-pacts -Dpact.verifier.publishResults=true -Dpact.provider.version=`git rev-parse --short HEAD` -Dpactbroker.consumers=welcome-member-email-service -Dpactbroker.tags=`git rev-parse --abbrev-ref HEAD` -Dpactbroker.user=rw_user -Dpactbroker.pass=rw_pass
 
   can_i_deploy:
     steps:
       - run:
           name: can_i_deploy-credit-score-service
-          command: echo "no need to run since it doesn't create any pacts"
+          command:  |
+            export BUILDEVENTS_SPAN_ID=$(echo ${CIRCLE_JOB}-${CIRCLE_NODE_INDEX} | sha256sum | awk '{print $1}')
+            buildevents cmd ${CIRCLE_WORKFLOW_ID} ${BUILDEVENTS_SPAN_ID} 'can_i_deploy-credit-score-service' -- \
+              echo "no need to run since it doesn't create any pacts"
       - run:
           name: can_i_deploy-special-membership-service
-          command: docker run --rm --net host ${PACT_CLI_IMG} broker can-i-deploy -v --pacticipant special-membership-service --version `git rev-parse --short HEAD` --to prod --broker-base-url ${PACT_BROKER_URL} --broker-username=rw_user --broker-password=rw_pass
+          command:  |
+            export BUILDEVENTS_SPAN_ID=$(echo ${CIRCLE_JOB}-${CIRCLE_NODE_INDEX} | sha256sum | awk '{print $1}')
+            buildevents cmd ${CIRCLE_WORKFLOW_ID} ${BUILDEVENTS_SPAN_ID} 'can_i_deploy-special-membership-service' -- \
+              docker run --rm --net host ${PACT_CLI_IMG} broker can-i-deploy -v --pacticipant special-membership-service --version `git rev-parse --short HEAD` --to prod --broker-base-url ${PACT_BROKER_URL} --broker-username=rw_user --broker-password=rw_pass
       - run:
           name: can_i_deploy-welcome-member-email-service
-          command: docker run --rm --net host ${PACT_CLI_IMG} broker can-i-deploy -v --pacticipant welcome-member-email-service --version `git rev-parse --short HEAD` --to prod --broker-base-url ${PACT_BROKER_URL} --broker-username=rw_user --broker-password=rw_pass
+          command:  |
+            export BUILDEVENTS_SPAN_ID=$(echo ${CIRCLE_JOB}-${CIRCLE_NODE_INDEX} | sha256sum | awk '{print $1}')
+            buildevents cmd ${CIRCLE_WORKFLOW_ID} ${BUILDEVENTS_SPAN_ID} 'can_i_deploy-welcome-member-email-service' -- \
+              docker run --rm --net host ${PACT_CLI_IMG} broker can-i-deploy -v --pacticipant welcome-member-email-service --version `git rev-parse --short HEAD` --to prod --broker-base-url ${PACT_BROKER_URL} --broker-username=rw_user --broker-password=rw_pass
 
   tag_pacts_prod:
     steps:
       - run:
           name: tag_pacts_prod-credit-score-service
-          command: docker run --rm --net host ${PACT_CLI_IMG} broker create-version-tag --pacticipant credit-score-service --version `git rev-parse --short HEAD` --tag prod --broker-base-url ${PACT_BROKER_URL} --broker-username=rw_user --broker-password=rw_pass
+          command:  |
+            export BUILDEVENTS_SPAN_ID=$(echo ${CIRCLE_JOB}-${CIRCLE_NODE_INDEX} | sha256sum | awk '{print $1}')
+            buildevents cmd ${CIRCLE_WORKFLOW_ID} ${BUILDEVENTS_SPAN_ID} 'tag_pacts_prod-credit-score-service' -- \
+              docker run --rm --net host ${PACT_CLI_IMG} broker create-version-tag --pacticipant credit-score-service --version `git rev-parse --short HEAD` --tag prod --broker-base-url ${PACT_BROKER_URL} --broker-username=rw_user --broker-password=rw_pass
       - run:
           name: tag_pacts_prod-special-membership-service
-          command: docker run --rm --net host ${PACT_CLI_IMG} broker create-version-tag --pacticipant special-membership-service --version `git rev-parse --short HEAD` --tag prod --broker-base-url ${PACT_BROKER_URL} --broker-username=rw_user --broker-password=rw_pass
+          command:  |
+            export BUILDEVENTS_SPAN_ID=$(echo ${CIRCLE_JOB}-${CIRCLE_NODE_INDEX} | sha256sum | awk '{print $1}')
+            buildevents cmd ${CIRCLE_WORKFLOW_ID} ${BUILDEVENTS_SPAN_ID} 'tag_pacts_prod-special-membership-service' -- \
+              docker run --rm --net host ${PACT_CLI_IMG} broker create-version-tag --pacticipant special-membership-service --version `git rev-parse --short HEAD` --tag prod --broker-base-url ${PACT_BROKER_URL} --broker-username=rw_user --broker-password=rw_pass
       - run:
           name: tag_pacts_prod-welcome-member-email-service
-          command: docker run --rm --net host ${PACT_CLI_IMG} broker create-version-tag --pacticipant welcome-member-email-service --version `git rev-parse --short HEAD` --tag prod --broker-base-url ${PACT_BROKER_URL} --broker-username=rw_user --broker-password=rw_pass
+          command:  |
+            export BUILDEVENTS_SPAN_ID=$(echo ${CIRCLE_JOB}-${CIRCLE_NODE_INDEX} | sha256sum | awk '{print $1}')
+            buildevents cmd ${CIRCLE_WORKFLOW_ID} ${BUILDEVENTS_SPAN_ID} 'tag_pacts_prod-welcome-member-email-service' -- \
+              docker run --rm --net host ${PACT_CLI_IMG} broker create-version-tag --pacticipant welcome-member-email-service --version `git rev-parse --short HEAD` --tag prod --broker-base-url ${PACT_BROKER_URL} --broker-username=rw_user --broker-password=rw_pass
 
 jobs:
   setup:
