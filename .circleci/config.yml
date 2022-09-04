@@ -1,146 +1,170 @@
 version: 2.1
 
 orbs:
-  buildevents: honeycombio/buildevents@0.8.0
   docker: circleci/docker@2.1.3
   maven: circleci/maven@1.3.0
 
-commands:
-
-  envvars:
-    steps:
-      - run: echo ${BUILDEVENTS_SPAN_ID}
-
-  install-xpath:
-    steps:
-      - run: |
-          buildevents cmd ${CIRCLE_WORKFLOW_ID} ${BUILDEVENTS_SPAN_ID} 'apt update' -- \
-            sudo apt update
-      - run: |
-          buildevents cmd ${CIRCLE_WORKFLOW_ID} ${BUILDEVENTS_SPAN_ID} 'install xpath' -- \
-            sudo apt install libxml-xpath-perl
-  
-  service-build:
-    parameters:
-      service:
-        type: string
-
-    steps:
-      - run: ./.circleci/scripts/<< parameters.service >>-build.sh
-      - run:
-          name: add test results to span
-          # This is a workaround for `buildevents/add_context` not allowing a `when`
-          when: always
-          command: |
-            FS_COMPLETED=$(xpath -q -e 'failsafe-summary/completed/text()'  << parameters.service >>/target/failsafe-reports/failsafe-summary.xml)
-            FS_ERRORS=$(xpath -q -e 'failsafe-summary/errors/text()'  << parameters.service >>/target/failsafe-reports/failsafe-summary.xml)
-            FS_FAILURES=$(xpath -q -e 'failsafe-summary/failures/text()'  << parameters.service >>/target/failsafe-reports/failsafe-summary.xml)
-            FS_SKIPPED=$(xpath -q -e 'failsafe-summary/skipped/text()'  << parameters.service >>/target/failsafe-reports/failsafe-summary.xml)
-            echo " ci.reporting.integration.completed=${FS_COMPLETED}" >> /tmp/buildevents/extra_fields.lgfmt
-            echo " ci.reporting.integration.errors=${FS_ERRORS}" >> /tmp/buildevents/extra_fields.lgfmt
-            echo " ci.reporting.integration.failures=${FS_FAILURES}" >> /tmp/buildevents/extra_fields.lgfmt
-            echo " ci.reporting.integration.skipped=${FS_SKIPPED}" >> /tmp/buildevents/extra_fields.lgfmt
-
 jobs:
 
-  setup:
-    docker:
-      - image: cimg/go:1.18
-
-    steps:
-      - buildevents/start_trace
-
-  watch:
-    docker:
-      - image: cimg/go:1.18
-
-    steps:
-      - buildevents/watch_build_and_finish
-
-  service_build:
+  credit-score-service:
     machine:
       image: ubuntu-2204:2022.04.2
 
     environment:
       PACT_CLI_IMG: pactfoundation/pact-cli:0.12.3.0
       PACT_BROKER_URL: localhost:9292
-    
-    parameters:
-      service:
-        type: string
 
     steps:
-      - buildevents/with_job_span:
+      - checkout
+
+      - run:
+          name: Start-dependencies-with-docker-compose
+          command: docker-compose -f pact-tools/pact-broker/docker-compose.yml up
+          background: true
+
+      - run:
+          name: build
+          command: mvn clean verify -pl credit-score-service -Pcode-coverage -Pstatic-code-analysis
+
+      - run:
+          name: verify-pacts
+          command: mvn verify -pl credit-score-service -Pprovider-pacts -Dpact.verifier.publishResults=true -Dpact.provider.version=`git rev-parse --short HEAD` -Dpactbroker.tags=prod -Dpactbroker.user=rw_user -Dpactbroker.pass=rw_pass
+
+      # create-pacts
+      ## no pacts to create
+      # can-i-deploy
+      ## no need to run since it doesn't create any pacts
+
+      - run:
+          name: tag-pacts-as-production
+          command: docker run --rm --net host ${PACT_CLI_IMG} broker create-version-tag --auto-create-version --pacticipant credit-score-service --version `git rev-parse --short HEAD` --tag prod --broker-base-url ${PACT_BROKER_URL} --broker-username=rw_user --broker-password=rw_pass
+
+      - when:
+          condition:
+            bool: true # Always run!
           steps:
-            - checkout
-            
             - run:
-                command: |
-                  BUILDEVENTS_SPAN_ID=$(echo ${CIRCLE_JOB}-${CIRCLE_NODE_INDEX} | sha256sum | awk '{print $1}')
-                  echo "export BUILDEVENTS_SPAN_ID=\"${BUILDEVENTS_SPAN_ID}\"" >> $BASH_ENV
-                  echo $BUILDEVENTS_SPAN_ID
+                name: Stop-dependencies-with-docker-compose
+                command: docker-compose -f pact-tools/pact-broker/docker-compose.yml down
 
-            - envvars
+  special-membership-service:
+    machine:
+      image: ubuntu-2204:2022.04.2
 
-            - install-xpath
+    environment:
+      PACT_CLI_IMG: pactfoundation/pact-cli:0.12.3.0
+      PACT_BROKER_URL: localhost:9292
 
+    steps:
+      - checkout
+
+      - run:
+          name: Start-dependencies-with-docker-compose
+          command: docker-compose -f pact-tools/pact-broker/docker-compose.yml up
+          background: true
+
+      - run:
+          name: build
+          command: mvn clean verify -pl special-membership-service -Pcode-coverage -Pstatic-code-analysis
+
+      - run:
+          name: verify-pacts
+          command: mvn verify -pl special-membership-service -Pprovider-pacts -Dpact.verifier.publishResults=true -Dpact.provider.version=`git rev-parse --short HEAD` -Dpactbroker.tags=prod -Dpactbroker.user=rw_user -Dpactbroker.pass=rw_pass
+
+      - run:
+          name: create-pacts
+          command: |
+            mvn verify -pl special-membership-service -Pconsumer-pacts
+            docker run --rm --net host -v `pwd`/special-membership-service/target/pacts:/target/pacts ${PACT_CLI_IMG} publish /target/pacts --consumer-app-version `git rev-parse --short HEAD` --tag `git rev-parse --abbrev-ref HEAD` --broker-base-url ${PACT_BROKER_URL} --broker-username=rw_user --broker-password=rw_pass
+
+      # simulate that we run the providers' support pipelines
+      - run:
+          name: simulate that there is a prod version of the provider deployed
+          command: docker run --rm --net host ${PACT_CLI_IMG} broker create-version-tag --auto-create-version --pacticipant credit-score-service --version `git rev-parse --short HEAD` --tag prod --broker-base-url ${PACT_BROKER_URL} --broker-username=rw_user --broker-password=rw_pass
+
+      - run:
+          name: verify-pacts-of-special-membership-service-that-were-just-published
+          command: mvn verify -pl credit-score-service -Pprovider-pacts -Dpact.verifier.publishResults=true -Dpact.provider.version=`git rev-parse --short HEAD` -Dpactbroker.consumers=special-membership-service -Dpactbroker.tags=`git rev-parse --abbrev-ref HEAD` -Dpactbroker.user=rw_user -Dpactbroker.pass=rw_pass
+
+      # meanwhile, this is happening in the special membership service pipeline
+      - run:
+          name: can-i-deploy
+          command: docker run --rm --net host ${PACT_CLI_IMG} broker can-i-deploy -v --pacticipant special-membership-service --version `git rev-parse --short HEAD` --to prod --broker-base-url ${PACT_BROKER_URL} --broker-username=rw_user --broker-password=rw_pass
+
+      - run:
+          name: tag-pacts-as-production
+          command: docker run --rm --net host ${PACT_CLI_IMG} broker create-version-tag --auto-create-version --pacticipant special-membership-service --version `git rev-parse --short HEAD` --tag prod --broker-base-url ${PACT_BROKER_URL} --broker-username=rw_user --broker-password=rw_pass
+
+      - when:
+          condition:
+            bool: true # Always run!
+          steps:
             - run:
-                name: Start dependencies with docker-compose
-                command: |
-                  export BUILDEVENTS_SPAN_ID=$(echo ${CIRCLE_JOB}-${CIRCLE_NODE_INDEX} | sha256sum | awk '{print $1}')
-                  buildevents cmd ${CIRCLE_WORKFLOW_ID} ${BUILDEVENTS_SPAN_ID} 'run dependencies' -- \
-                    docker-compose -f pact-tools/pact-broker/docker-compose.yml up
-                background: true
+                name: Stop-dependencies-with-docker-compose
+                command: docker-compose -f pact-tools/pact-broker/docker-compose.yml down
 
-            - service-build:
-                service: << parameters.service >>
+  welcome-member-email-service:
+    machine:
+      image: ubuntu-2204:2022.04.2
 
+    environment:
+      PACT_CLI_IMG: pactfoundation/pact-cli:0.12.3.0
+      PACT_BROKER_URL: localhost:9292
+
+    steps:
+      - checkout
+
+      - run:
+          name: Start-dependencies-with-docker-compose
+          command: docker-compose -f pact-tools/pact-broker/docker-compose.yml up
+          background: true
+
+      - run:
+          name: build
+          command: mvn clean verify -pl welcome-member-email-service -Pcode-coverage -Pstatic-code-analysis
+
+      # verify pacts
+      ## No pacts to verify
+
+      - run:
+          name: create-pacts
+          command: |
+            mvn verify -pl welcome-member-email-service -Pconsumer-pacts
+            docker run --rm --net host -v `pwd`/welcome-member-email-service/target/pacts:/target/pacts ${PACT_CLI_IMG} publish /target/pacts --consumer-app-version `git rev-parse --short HEAD` --tag `git rev-parse --abbrev-ref HEAD` --broker-base-url ${PACT_BROKER_URL} --broker-username=rw_user --broker-password=rw_pass
+
+      # simulate that we run the providers' support pipelines
+      - run:
+          name: simulate-that-there-is-a-prod-version-of-the-provider-deployed
+          command: docker run --rm --net host ${PACT_CLI_IMG} broker create-version-tag --auto-create-version --pacticipant special-membership-service --version `git rev-parse --short HEAD` --tag prod --broker-base-url ${PACT_BROKER_URL} --broker-username=rw_user --broker-password=rw_pass
+
+      - run:
+          name: verify-pacts-of-welcome-member-email-service-that-were-just-published
+          command: mvn verify -pl special-membership-service -Pprovider-pacts -Dpact.verifier.publishResults=true -Dpact.provider.version=`git rev-parse --short HEAD` -Dpactbroker.consumers=welcome-member-email-service -Dpactbroker.tags=`git rev-parse --abbrev-ref HEAD` -Dpactbroker.user=rw_user -Dpactbroker.pass=rw_pass
+
+      # meanwhile, this is happening in the welcome member email service pipeline
+      - run:
+          name: can-i-deploy
+          command: docker run --rm --net host ${PACT_CLI_IMG} broker can-i-deploy -v --pacticipant welcome-member-email-service --version `git rev-parse --short HEAD` --to prod --broker-base-url ${PACT_BROKER_URL} --broker-username=rw_user --broker-password=rw_pass
+
+      - run:
+          name: tag-pacts-as-production
+          command: docker run --rm --net host ${PACT_CLI_IMG} broker create-version-tag --auto-create-version --pacticipant welcome-member-email-service --version `git rev-parse --short HEAD` --tag prod --broker-base-url ${PACT_BROKER_URL} --broker-username=rw_user --broker-password=rw_pass
+
+      - when:
+          condition:
+            bool: true # Always run!
+          steps:
             - run:
-                name: Stop dependencies with docker-compose
-                command: |
-                  BUILDEVENTS_SPAN_ID=$(echo ${CIRCLE_JOB}-${CIRCLE_NODE_INDEX} | sha256sum | awk '{print $1}')
-                  buildevents cmd ${CIRCLE_WORKFLOW_ID} ${BUILDEVENTS_SPAN_ID} 'clean up dependencies' -- \
-                    docker-compose -f pact-tools/pact-broker/docker-compose.yml down
-                when: always
+                name: Stop-dependencies-with-docker-compose
+                command: docker-compose -f pact-tools/pact-broker/docker-compose.yml down
 
 workflows:
   build_and_test:
     jobs:
-      - setup
-      - watch:
+      - credit-score-service
+      - special-membership-service:
           requires:
-            - setup
-      - service_build:
+            - credit-score-service
+      - welcome-member-email-service:
           requires:
-            - setup
-          matrix:
-            parameters:
-              service: [
-                "credit-score-service",
-                "special-membership-service",
-                "welcome-member-email-service",
-              ]
-
-  scheduled:
-    triggers:
-      - schedule:
-          cron: "0,10,20,30,40,50 * * * *"
-          filters:
-            branches:
-              only:
-                - master
-    jobs:
-      - setup
-      - watch:
-          requires:
-            - setup
-      - service_build:
-          requires:
-            - setup
-          matrix:
-            parameters:
-              service: [
-                "credit-score-service",
-                "special-membership-service",
-                "welcome-member-email-service",
-              ]
+            - special-membership-service
