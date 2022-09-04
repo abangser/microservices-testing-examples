@@ -7,6 +7,20 @@ orbs:
 
 jobs:
 
+  setup:
+    docker:
+      - image: cimg/go:1.18
+
+    steps:
+      - buildevents/start_trace
+
+  watch:
+    docker:
+      - image: cimg/go:1.18
+
+    steps:
+      - buildevents/watch_build_and_finish
+
   credit-score-service:
     machine:
       image: ubuntu-2204:2022.04.2
@@ -162,6 +176,10 @@ jobs:
 workflows:
   build_and_test:
     jobs:
+      - setup
+      - watch:
+          requires:
+            - setup
       - credit-score-service
       - special-membership-service:
           requires:
