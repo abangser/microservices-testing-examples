@@ -127,8 +127,10 @@ jobs:
       PACT_BROKER_URL: localhost:9292
 
     steps:
-      - checkout
-      - build
+      - buildevents/with_job_span:
+          steps:
+          - checkout
+          - build
 
   test:
     machine:
@@ -139,25 +141,27 @@ jobs:
       PACT_BROKER_URL: localhost:9292
 
     steps:
-      - checkout
-      - run:
-          name: Start-dependencies-with-docker-compose
-          command: docker-compose -f pact-tools/pact-broker/docker-compose.yml up
-          background: true
-      - run:
-          name: wait-for-dependencies
-          command: sleep 30
-      - verify_provider_pacts
-      - create_pacts
-      - publish_pacts
-      - verify_provider_prod_pacts
-      - verify_provider_dev_pacts
-      - can_i_deploy
-      - tag_pacts_prod
-      - run:
-          name: Stop-dependencies-with-docker-compose
-          command: docker-compose -f pact-tools/pact-broker/docker-compose.yml down
-          when: always
+      - buildevents/with_job_span:
+          steps:
+            - checkout
+            - run:
+                name: Start-dependencies-with-docker-compose
+                command: docker-compose -f pact-tools/pact-broker/docker-compose.yml up
+                background: true
+            - run:
+                name: wait-for-dependencies
+                command: sleep 30
+            - verify_provider_pacts
+            - create_pacts
+            - publish_pacts
+            - verify_provider_prod_pacts
+            - verify_provider_dev_pacts
+            - can_i_deploy
+            - tag_pacts_prod
+            - run:
+                name: Stop-dependencies-with-docker-compose
+                command: docker-compose -f pact-tools/pact-broker/docker-compose.yml down
+                when: always
 
 workflows:
   build_and_test:
@@ -166,7 +170,10 @@ workflows:
       - watch:
           requires:
             - setup
-      - build
+      - build:
+          requires:
+            - setup
       - test:
           requires:
+            - setup
             - build
