@@ -222,8 +222,6 @@ workflows:
       - special-membership-service:
           requires:
             - setup
-            - credit-score-service
       - welcome-member-email-service:
           requires:
             - setup
-            - special-membership-service
