@@ -16,19 +16,22 @@ commands:
     parameters:
       service:
         type: string
+      phase:
+        type: string
+
 
     steps:
       - buildevents/add_context:
-          field_name: ci.reporting.integration.completed
+          field_name: ci.reporting.<< parameters.phase >>.completed
           field_value: $(xpath -q -e 'failsafe-summary/completed/text()'  << parameters.service >>/target/failsafe-reports/failsafe-summary.xml)
       - buildevents/add_context:
-          field_name: ci.reporting.integration.errors
+          field_name: ci.reporting.<< parameters.phase >>.errors
           field_value: $(xpath -q -e 'failsafe-summary/errors/text()'  << parameters.service >>/target/failsafe-reports/failsafe-summary.xml)
       - buildevents/add_context:
-          field_name: ci.reporting.integration.failures
+          field_name: ci.reporting.<< parameters.phase >>.failures
           field_value: $(xpath -q -e 'failsafe-summary/failures/text()'  << parameters.service >>/target/failsafe-reports/failsafe-summary.xml)
       - buildevents/add_context:
-          field_name: ci.reporting.integration.skipped
+          field_name: ci.reporting.<< parameters.phase >>.skipped
           field_value: $(xpath -q -e 'failsafe-summary/skipped/text()'  << parameters.service >>/target/failsafe-reports/failsafe-summary.xml)
 
 jobs:
@@ -73,6 +76,14 @@ jobs:
                   export BUILDEVENTS_SPAN_ID=$(echo ${CIRCLE_WORKFLOW_JOB_ID}-CIRCLE_JOB} | sha256sum | awk '{print $1}') && \
                   mvn clean verify -pl credit-score-service -Pcode-coverage -Pstatic-code-analysis
 
+            - when:
+                condition:
+                  bool: true # Always run!
+                steps:
+                  - test-results:
+                      phase: build
+                      service: welcome-member-email-service
+
             - buildevents/berun:
                 bename: verify-pacts
                 becommand: |
@@ -95,6 +106,7 @@ jobs:
                   bool: true # Always run!
                 steps:
                   - test-results:
+                      phase: pact
                       service: credit-score-service
                   - run:
                       name: Stop-dependencies-with-docker-compose
@@ -125,6 +137,14 @@ jobs:
                 becommand: |
                   export BUILDEVENTS_SPAN_ID=$(echo ${CIRCLE_WORKFLOW_JOB_ID}-CIRCLE_JOB} | sha256sum | awk '{print $1}') && \
                   mvn clean verify -pl special-membership-service -Pcode-coverage -Pstatic-code-analysis
+
+            - when:
+                condition:
+                  bool: true # Always run!
+                steps:
+                  - test-results:
+                      phase: build
+                      service: welcome-member-email-service
 
             - buildevents/berun:
                 bename: verify-pacts
@@ -170,6 +190,7 @@ jobs:
                   bool: true # Always run!
                 steps:
                   - test-results:
+                      phase: pact
                       service: special-membership-service
                   - run:
                       name: Stop-dependencies-with-docker-compose
@@ -201,6 +222,13 @@ jobs:
                   export BUILDEVENTS_SPAN_ID=$(echo ${CIRCLE_WORKFLOW_JOB_ID}-CIRCLE_JOB} | sha256sum | awk '{print $1}') && \
                   mvn clean verify -pl welcome-member-email-service -Pcode-coverage -Pstatic-code-analysis
 
+            - when:
+                condition:
+                  bool: true # Always run!
+                steps:
+                  - test-results:
+                      phase: build
+                      service: welcome-member-email-service
             # verify pacts
             ## No pacts to verify
 
@@ -242,6 +270,7 @@ jobs:
                   bool: true # Always run!
                 steps:
                   - test-results:
+                      phase: pact
                       service: welcome-member-email-service
                   - run:
                       name: Stop-dependencies-with-docker-compose
