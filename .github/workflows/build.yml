@@ -35,6 +35,11 @@ jobs:
           # this to a value uniquely describing each matrix configuration.
           # matrix-key: ${{ matrix.service }}
 
+      - name: "install xpath for reporting"
+        run: |
+          sudo apt update
+          sudo apt install libxml-xpath-perl
+
       - name: Start dependencies with docker-compose
         run: docker-compose -f pact-tools/pact-broker/docker-compose.yml up -d
 
@@ -66,6 +71,18 @@ jobs:
       - name: "Honeycomb: Finalize Build welcome-member-email-service"
         if: success() || failure()
         run: |
+          BUILDEVENT_FILE="local_buildevents.txt"
+          rm -f ${BUILDEVENT_FILE}
+
+          FS_COMPLETED=$(xpath -q -e 'failsafe-summary/completed/text()'  welcome-member-email-service/target/failsafe-reports/failsafe-summary.xml)
+          FS_ERRORS=$(xpath -q -e 'failsafe-summary/errors/text()'  welcome-member-email-service/target/failsafe-reports/failsafe-summary.xml)
+          FS_FAILURES=$(xpath -q -e 'failsafe-summary/failures/text()'  welcome-member-email-service/target/failsafe-reports/failsafe-summary.xml)
+          FS_SKIPPED=$(xpath -q -e 'failsafe-summary/skipped/text()'  welcome-member-email-service/target/failsafe-reports/failsafe-summary.xml)
+          echo " ci.tests.build.completed=${FS_COMPLETED}" >> $BUILDEVENT_FILE
+          echo " ci.tests.build.errors=${FS_ERRORS}" >> $BUILDEVENT_FILE
+          echo " ci.tests.build.failures=${FS_FAILURES}" >> $BUILDEVENT_FILE
+          echo " ci.tests.build.skipped=${FS_SKIPPED}" >> $BUILDEVENT_FILE
+
           buildevents step $TRACE_ID $STEP_ID $STEP_START $STEP_ID
 
       - name: Pact build and test welcome-member-email-service
@@ -116,6 +133,18 @@ jobs:
       - name: "Honeycomb: Finalize Build special-membership-service"
         if: success() || failure()
         run: |
+          BUILDEVENT_FILE="local_buildevents.txt"
+          rm -f ${BUILDEVENT_FILE}
+
+          FS_COMPLETED=$(xpath -q -e 'failsafe-summary/completed/text()'  special-membership-service/target/failsafe-reports/failsafe-summary.xml)
+          FS_ERRORS=$(xpath -q -e 'failsafe-summary/errors/text()'  special-membership-service/target/failsafe-reports/failsafe-summary.xml)
+          FS_FAILURES=$(xpath -q -e 'failsafe-summary/failures/text()'  special-membership-service/target/failsafe-reports/failsafe-summary.xml)
+          FS_SKIPPED=$(xpath -q -e 'failsafe-summary/skipped/text()'  special-membership-service/target/failsafe-reports/failsafe-summary.xml)
+          echo " ci.tests.build.completed=${FS_COMPLETED}" >> $BUILDEVENT_FILE
+          echo " ci.tests.build.errors=${FS_ERRORS}" >> $BUILDEVENT_FILE
+          echo " ci.tests.build.failures=${FS_FAILURES}" >> $BUILDEVENT_FILE
+          echo " ci.tests.build.skipped=${FS_SKIPPED}" >> $BUILDEVENT_FILE
+
           buildevents step $TRACE_ID $STEP_ID $STEP_START $STEP_ID
 
       - name: Pact build and test special-membership-service
@@ -167,6 +196,18 @@ jobs:
       - name: "Honeycomb: Finalize Build credit-score-service"
         if: success() || failure()
         run: |
+          BUILDEVENT_FILE="local_buildevents.txt"
+          rm -f ${BUILDEVENT_FILE}
+
+          FS_COMPLETED=$(xpath -q -e 'failsafe-summary/completed/text()'  credit-score-service/target/failsafe-reports/failsafe-summary.xml)
+          FS_ERRORS=$(xpath -q -e 'failsafe-summary/errors/text()'  credit-score-service/target/failsafe-reports/failsafe-summary.xml)
+          FS_FAILURES=$(xpath -q -e 'failsafe-summary/failures/text()'  credit-score-service/target/failsafe-reports/failsafe-summary.xml)
+          FS_SKIPPED=$(xpath -q -e 'failsafe-summary/skipped/text()'  credit-score-service/target/failsafe-reports/failsafe-summary.xml)
+          echo " ci.tests.build.completed=${FS_COMPLETED}" >> $BUILDEVENT_FILE
+          echo " ci.tests.build.errors=${FS_ERRORS}" >> $BUILDEVENT_FILE
+          echo " ci.tests.build.failures=${FS_FAILURES}" >> $BUILDEVENT_FILE
+          echo " ci.tests.build.skipped=${FS_SKIPPED}" >> $BUILDEVENT_FILE
+
           buildevents step $TRACE_ID $STEP_ID $STEP_START $STEP_ID
 
       - name: Pact build and test credit-score-service
