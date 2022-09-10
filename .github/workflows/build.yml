@@ -59,8 +59,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      - name: Build welcome-member-email-service
-        id: build-welcome-member-email
+      - name: build-welcome-member-email
         run: |
           STEP_ID=service_build-welcome-member-email-service
           STEP_START=$(date +%s)
@@ -72,20 +71,22 @@ jobs:
             mvn clean verify -pl welcome-member-email-service -Pcode-coverage -Pstatic-code-analysis
 
       - name: "Honeycomb: Finalize Build welcome-member-email-service"
-        if: contains(fromJson('["success", "failure"]'), steps.build-welcome-member-email.outcome)
+        if: always
         env:
+          OUTCOME: ${{ steps.build-welcome-member-email.outcome }}
           SERVICE: welcome-member-email-service
           FAILSAFE_SUMMARY_FILE: target/failsafe-reports/failsafe-summary.xml
         run: |
-          BUILDEVENT_FILE="${SERVICE}_buildevents.txt"
-          echo " ci.tests.build.completed=$(xpath -q -e 'failsafe-summary/completed/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
-          echo " ci.tests.build.errors=$(xpath -q -e 'failsafe-summary/errors/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
-          echo " ci.tests.build.failures=$(xpath -q -e 'failsafe-summary/failures/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
-          echo " ci.tests.build.skipped=$(xpath -q -e 'failsafe-summary/skipped/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
-          buildevents step $TRACE_ID $STEP_ID $STEP_START $STEP_ID
+          if [[ "${OUTCOME}" =~ "[success|failure]" ]]; then
+            BUILDEVENT_FILE="${SERVICE}_buildevents.txt"
+            echo " ci.tests.build.completed=$(xpath -q -e 'failsafe-summary/completed/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
+            echo " ci.tests.build.errors=$(xpath -q -e 'failsafe-summary/errors/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
+            echo " ci.tests.build.failures=$(xpath -q -e 'failsafe-summary/failures/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
+            echo " ci.tests.build.skipped=$(xpath -q -e 'failsafe-summary/skipped/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
+            buildevents step $TRACE_ID $STEP_ID $STEP_START $STEP_ID
+          fi
 
-      - name: Pact build and test welcome-member-email-service
-        id: pact-welcome-member-email
+      - name: pact-welcome-member-email
         run: |
           STEP_ID=pact_test-welcome-member-email-service
           STEP_START=$(date +%s)
@@ -118,17 +119,22 @@ jobs:
             docker run --rm --net host ${PACT_CLI_IMG} broker create-version-tag --auto-create-version --pacticipant welcome-member-email-service --version `git rev-parse --short HEAD` --tag prod --broker-base-url ${PACT_BROKER_URL} --broker-username=rw_user --broker-password=rw_pass
 
       - name: "Honeycomb: Finalize Pact build and test welcome-member-email-service"
-        if: always()
+        if: always
         env:
           OUTCOME: ${{ steps.pact-welcome-member-email.outcome }}
+          SERVICE: welcome-member-email-service
+          FAILSAFE_SUMMARY_FILE: target/failsafe-reports/failsafe-summary.xml
         run: |
-          if [ ${OUTCOME} =~ "^[success|failure]$" ]
-          then
+          if [[ "${OUTCOME}" =~ "[success|failure]" ]]; then
+            BUILDEVENT_FILE="${SERVICE}_buildevents.txt"
+            echo " ci.tests.build.completed=$(xpath -q -e 'failsafe-summary/completed/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
+            echo " ci.tests.build.errors=$(xpath -q -e 'failsafe-summary/errors/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
+            echo " ci.tests.build.failures=$(xpath -q -e 'failsafe-summary/failures/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
+            echo " ci.tests.build.skipped=$(xpath -q -e 'failsafe-summary/skipped/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
             buildevents step $TRACE_ID $STEP_ID $STEP_START $STEP_ID
           fi
 
-      - name: Build special-membership-service
-        id: build-special-membership
+      - name: build-special-membership
         run: |
           STEP_ID=service_build-special-membership-service
           STEP_START=$(date +%s)
@@ -140,20 +146,22 @@ jobs:
             mvn clean verify -pl special-membership-service -Pcode-coverage -Pstatic-code-analysis
 
       - name: "Honeycomb: Finalize Build special-membership-service"
-        if: contains(fromJson('["success", "failure"]'), steps.build-special-membership.outcome)
+        if: always
         env:
-          SERVICE: welcome-member-email-service
+          OUTCOME: ${{ steps.build-special-membership.outcome }}
+          SERVICE: special-membership-service
           FAILSAFE_SUMMARY_FILE: target/failsafe-reports/failsafe-summary.xml
         run: |
-          BUILDEVENT_FILE="${SERVICE}_buildevents.txt"
-          echo " ci.tests.build.completed=$(xpath -q -e 'failsafe-summary/completed/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
-          echo " ci.tests.build.errors=$(xpath -q -e 'failsafe-summary/errors/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
-          echo " ci.tests.build.failures=$(xpath -q -e 'failsafe-summary/failures/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
-          echo " ci.tests.build.skipped=$(xpath -q -e 'failsafe-summary/skipped/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
-          buildevents step $TRACE_ID $STEP_ID $STEP_START $STEP_ID
+          if [[ "${OUTCOME}" =~ "[success|failure]" ]]; then
+            BUILDEVENT_FILE="${SERVICE}_buildevents.txt"
+            echo " ci.tests.build.completed=$(xpath -q -e 'failsafe-summary/completed/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
+            echo " ci.tests.build.errors=$(xpath -q -e 'failsafe-summary/errors/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
+            echo " ci.tests.build.failures=$(xpath -q -e 'failsafe-summary/failures/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
+            echo " ci.tests.build.skipped=$(xpath -q -e 'failsafe-summary/skipped/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
+            buildevents step $TRACE_ID $STEP_ID $STEP_START $STEP_ID
+          fi
 
-      - name: Pact build and test special-membership-service
-        id: pact-special-membership
+      - name: pact-special-membership
         run: |
           STEP_ID=pact_test-special-membership-service
           STEP_START=$(date +%s)
@@ -184,12 +192,22 @@ jobs:
             docker run --rm --net host ${PACT_CLI_IMG} broker create-version-tag --auto-create-version --pacticipant special-membership-service --version `git rev-parse --short HEAD` --tag prod --broker-base-url ${PACT_BROKER_URL} --broker-username=rw_user --broker-password=rw_pass
 
       - name: "Honeycomb: Finalize Pact build and test special-membership-service"
-        if: contains(fromJson('["success", "failure"]'), steps.pact-special-membership.outcome)
+        if: always
+        env:
+          OUTCOME: ${{ steps.pact-special-membership.outcome }}
+          SERVICE: special-membership-service
+          FAILSAFE_SUMMARY_FILE: target/failsafe-reports/failsafe-summary.xml
         run: |
-          buildevents step $TRACE_ID $STEP_ID $STEP_START $STEP_ID
+          if [[ "${OUTCOME}" =~ "[success|failure]" ]]; then
+            BUILDEVENT_FILE="${SERVICE}_buildevents.txt"
+            echo " ci.tests.build.completed=$(xpath -q -e 'failsafe-summary/completed/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
+            echo " ci.tests.build.errors=$(xpath -q -e 'failsafe-summary/errors/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
+            echo " ci.tests.build.failures=$(xpath -q -e 'failsafe-summary/failures/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
+            echo " ci.tests.build.skipped=$(xpath -q -e 'failsafe-summary/skipped/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
+            buildevents step $TRACE_ID $STEP_ID $STEP_START $STEP_ID
+          fi
 
-      - name: Build credit-score-service
-        id: build-credit-score
+      - name: build-credit-score
         run: |
           STEP_ID=service_build-credit-score-service
           STEP_START=$(date +%s)
@@ -201,20 +219,22 @@ jobs:
             mvn clean verify -pl credit-score-service -Pcode-coverage -Pstatic-code-analysis
 
       - name: "Honeycomb: Finalize Build credit-score-service"
-        if: contains(fromJson('["success", "failure"]'), steps.build-credit-score.outcome)
+        if: always
         env:
-          SERVICE: welcome-member-email-service
+          OUTCOME: ${{ steps.build-credit-score.outcome }}
+          SERVICE: credit-score-service
           FAILSAFE_SUMMARY_FILE: target/failsafe-reports/failsafe-summary.xml
         run: |
-          BUILDEVENT_FILE="${SERVICE}_buildevents.txt"
-          echo " ci.tests.build.completed=$(xpath -q -e 'failsafe-summary/completed/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
-          echo " ci.tests.build.errors=$(xpath -q -e 'failsafe-summary/errors/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
-          echo " ci.tests.build.failures=$(xpath -q -e 'failsafe-summary/failures/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
-          echo " ci.tests.build.skipped=$(xpath -q -e 'failsafe-summary/skipped/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
-          buildevents step $TRACE_ID $STEP_ID $STEP_START $STEP_ID
+          if [[ "${OUTCOME}" =~ "[success|failure]" ]]; then
+            BUILDEVENT_FILE="${SERVICE}_buildevents.txt"
+            echo " ci.tests.build.completed=$(xpath -q -e 'failsafe-summary/completed/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
+            echo " ci.tests.build.errors=$(xpath -q -e 'failsafe-summary/errors/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
+            echo " ci.tests.build.failures=$(xpath -q -e 'failsafe-summary/failures/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
+            echo " ci.tests.build.skipped=$(xpath -q -e 'failsafe-summary/skipped/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
+            buildevents step $TRACE_ID $STEP_ID $STEP_START $STEP_ID
+          fi
 
-      - name: Pact build and test credit-score-service
-        id: pact-credit-score
+      - name: pact-credit-score
         run: |
           STEP_ID=pact_test-credit-score-service
           STEP_START=$(date +%s)
@@ -233,9 +253,20 @@ jobs:
             docker run --rm --net host ${PACT_CLI_IMG} broker create-version-tag --auto-create-version --pacticipant credit-score-service --version `git rev-parse --short HEAD` --tag prod --broker-base-url ${PACT_BROKER_URL} --broker-username=rw_user --broker-password=rw_pass
 
       - name: "Honeycomb: Finalize Pact build and test credit-score-service"
-        if: contains(fromJson('["success", "failure"]'), steps.pact-credit-score.outcome)
+        if: always
+        env:
+          OUTCOME: ${{ steps.pact-credit-score.outcome }}
+          SERVICE: credit-score-service
+          FAILSAFE_SUMMARY_FILE: target/failsafe-reports/failsafe-summary.xml
         run: |
-          buildevents step $TRACE_ID $STEP_ID $STEP_START $STEP_ID
+          if [[ "${OUTCOME}" =~ "[success|failure]" ]]; then
+            BUILDEVENT_FILE="${SERVICE}_buildevents.txt"
+            echo " ci.tests.build.completed=$(xpath -q -e 'failsafe-summary/completed/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
+            echo " ci.tests.build.errors=$(xpath -q -e 'failsafe-summary/errors/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
+            echo " ci.tests.build.failures=$(xpath -q -e 'failsafe-summary/failures/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
+            echo " ci.tests.build.skipped=$(xpath -q -e 'failsafe-summary/skipped/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
+            buildevents step $TRACE_ID $STEP_ID $STEP_START $STEP_ID
+          fi
 
       - name: Stop dependencies with docker-compose
         run: docker-compose -f pact-tools/pact-broker/docker-compose.yml down
