@@ -25,8 +25,8 @@ commands:
             ci.tests.build.errors=$(xpath -q -e 'failsafe-summary/errors/text()'  << parameters.service >>/target/failsafe-reports/failsafe-summary.xml)
             ci.tests.build.failures=$(xpath -q -e 'failsafe-summary/failures/text()'  << parameters.service >>/target/failsafe-reports/failsafe-summary.xml)
             ci.tests.build.skipped=$(xpath -q -e 'failsafe-summary/skipped/text()'  << parameters.service >>/target/failsafe-reports/failsafe-summary.xml)
-          " >> ${BUILDEVENT_FILE}
-          buildevents cmd $CIRCLE_WORKFLOW_ID $BUILDEVENTS_SPAN_ID "<< parameters.service >>-test-results" - echo 'sending test results'
+          " >> ${BUILDEVENT_FILE};
+          buildevents cmd $CIRCLE_WORKFLOW_ID $BUILDEVENTS_SPAN_ID "<< parameters.service >>-test-results" -- echo 'sending test results'
           rm ./step_specific_buildevents_file.txt
 
 jobs:
