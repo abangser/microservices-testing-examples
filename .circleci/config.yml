@@ -19,6 +19,8 @@ commands:
 
     steps:
       - run:
+         pwd
+         ls -la << parameters.service >>
          cat $BUILDEVENT_FILE > ./step_specific_buildevents_file.txt
          BUILDEVENT_FILE=./step_specific_buildevents_file.txt
          echo "
