@@ -5,6 +5,32 @@ orbs:
   docker: circleci/docker@2
   maven: circleci/maven@1
 
+commands:
+
+  install-xpath:
+    steps:
+      - run: sudo apt update
+      - run: sudo apt install libxml-xpath-perl
+
+  build-test-results:
+    parameters:
+      service:
+        type: string
+
+    steps:
+      - buildevents/add_context:
+          field_name: ci.tests.build.completed
+          field_value: $(xpath -q -e 'failsafe-summary/completed/text()'  << parameters.service >>/target/failsafe-reports/failsafe-summary.xml)
+      - buildevents/add_context:
+          field_name: ci.tests.build.errors
+          field_value: $(xpath -q -e 'failsafe-summary/errors/text()'  << parameters.service >>/target/failsafe-reports/failsafe-summary.xml)
+      - buildevents/add_context:
+          field_name: ci.tests.build.failures
+          field_value: $(xpath -q -e 'failsafe-summary/failures/text()'  << parameters.service >>/target/failsafe-reports/failsafe-summary.xml)
+      - buildevents/add_context:
+          field_name: ci.tests.build.skipped
+          field_value: $(xpath -q -e 'failsafe-summary/skipped/text()'  << parameters.service >>/target/failsafe-reports/failsafe-summary.xml)
+
 jobs:
 
   setup:
@@ -41,10 +67,12 @@ jobs:
                 bename: Build-welcome-member-email-service
                 becommand: mvn clean verify -pl credit-score-service -Pcode-coverage -Pstatic-code-analysis
 
-            - buildevents/berun:
-                bename: Pact-build-and-test-welcome-member-email-service
-                becommand: |
-                  mvn verify -pl credit-score-service -Pprovider-pacts -Dpact.verifier.publishResults=true -Dpact.provider.version=`git rev-parse --short HEAD` -Dpactbroker.tags=prod -Dpactbroker.user=rw_user -Dpactbroker.pass=rw_pass
+            - when:
+                condition:
+                  bool: on_success || on_failure
+                steps:
+                  - build-test-results:
+                      service: welcome-member-email-service
 
             - buildevents/berun:
                 bename: Pact-build-and-test-welcome-member-email-service
@@ -65,6 +93,13 @@ jobs:
             - buildevents/berun:
                 bename: Build-special-membership-service
                 becommand: mvn clean verify -pl special-membership-service -Pcode-coverage -Pstatic-code-analysis
+
+            - when:
+                condition:
+                  bool: on_success || on_failure
+                steps:
+                  - build-test-results:
+                      service: special-membership-service
 
             - buildevents/berun:
                 bename: Pact-build-and-test-special-membership-service
@@ -87,6 +122,13 @@ jobs:
             - buildevents/berun:
                 bename: Build-credit-score-service
                 becommand: mvn clean verify -pl credit-score-service -Pcode-coverage -Pstatic-code-analysis
+
+            - when:
+                condition:
+                  bool: on_success || on_failure
+                steps:
+                  - build-test-results:
+                      service: credit-score-service
 
             - buildevents/berun:
                 bename: Pact-build-and-test-credit-score-service
