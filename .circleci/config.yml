@@ -9,29 +9,33 @@ commands:
 
   install-xpath:
     steps:
-      - run: sudo apt update
-      - run: sudo apt install libxml-xpath-perl
+      - run: |
+          buildevents cmd ${CIRCLE_WORKFLOW_ID} ${BUILDEVENTS_SPAN_ID} 'apt update' -- \
+            sudo apt update
+      - run: |
+          buildevents cmd ${CIRCLE_WORKFLOW_ID} ${BUILDEVENTS_SPAN_ID} 'install xpath' -- \
+            sudo apt install libxml-xpath-perl
 
-  record-test-results:
+  build:
     parameters:
       service:
         type: string
+
     steps:
+      - run: |
+          buildevents cmd ${CIRCLE_WORKFLOW_ID} ${BUILDEVENTS_SPAN_ID} "build_<< parameters.service >>" -- \
+            mvn clean verify -pl << parameters.service >> -Pcode-coverage -Pstatic-code-analysis
       - run:
-          name: setup
+          when: always
+          environment:
+            BUILDEVENT_FILE: /tmp/<< parameters.service >>_specific_buildevents_file.txt
+          name: add-test-results-to-span
           command: |
-            PATH=$PATH:/tmp/buildevents/be/bin-linux:/tmp/be/bin-linux;
-            BUILDEVENT_FILE=./<< parameters.service >>_specific_buildevents_file.txt;
-      - run:
-          name: add-fields
-          command:
-            echo " ci.tests.build.completed=$(xpath -q -e 'failsafe-summary/completed/text()'  << parameters.service >>/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
-            echo " ci.tests.build.errors=$(xpath -q -e 'failsafe-summary/errors/text()'  << parameters.service >>/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
-            echo " ci.tests.build.failures=$(xpath -q -e 'failsafe-summary/failures/text()'  << parameters.service >>/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
-            echo " ci.tests.build.skipped=$(xpath -q -e 'failsafe-summary/skipped/text()'  << parameters.service >>/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
-      - run:
-          name: send-command
-          command: buildevents cmd $CIRCLE_WORKFLOW_ID $(cat /tmp/buildevents/be/${CIRCLE_JOB}-${CIRCLE_NODE_INDEX}/span_id) << parameters.service >>-test-results -- echo "sending test results"
+            echo " ci.tests.build.completed=$(xpath -q -e 'failsafe-summary/completed/text()'  << parameters.service >>/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE
+            echo " ci.tests.build.errors=$(xpath -q -e 'failsafe-summary/errors/text()'  << parameters.service >>/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE
+            echo " ci.tests.build.failures=$(xpath -q -e 'failsafe-summary/failures/text()'  << parameters.service >>/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE
+            echo " ci.tests.build.skipped=$(xpath -q -e 'failsafe-summary/skipped/text()'  << parameters.service >>/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE
+            buildevents cmd ${CIRCLE_WORKFLOW_ID} ${BUILDEVENTS_SPAN_ID} report-test-results_<< parameters.service >> -- echo
 
 jobs:
 
@@ -47,7 +51,23 @@ jobs:
     steps:
       - buildevents/watch_build_and_finish
 
-  build-and-test:
+  build:
+    machine:
+      image: ubuntu-2204:2022.04.2
+
+    parameters:
+      service:
+        type: string
+
+    steps:
+      - buildevents/with_job_span:
+          steps:
+            - checkout
+            - install-xpath
+            - build:
+                service: << parameters.service >>
+
+  pact-test:
     machine:
       image: ubuntu-2204:2022.04.2
 
@@ -60,20 +80,10 @@ jobs:
           steps:
             - checkout
 
-            - install-xpath
-
             - run:
                 name: Start-dependencies-with-docker-compose
                 command: docker-compose -f pact-tools/pact-broker/docker-compose.yml up
                 background: true
-
-            - buildevents/berun:
-                bename: Build-welcome-member-email-service
-                becommand: false
-
-            - run:
-                when: always
-                command: SERVICE=welcome-member-email-service ./.circleci/script.sh
 
             - buildevents/berun:
                 bename: Pact-build-and-test-welcome-member-email-service
@@ -92,25 +102,6 @@ jobs:
                   docker run --rm --net host ${PACT_CLI_IMG} broker create-version-tag --auto-create-version --pacticipant welcome-member-email-service --version `git rev-parse --short HEAD` --tag prod --broker-base-url ${PACT_BROKER_URL} --broker-username=rw_user --broker-password=rw_pass
 
             - buildevents/berun:
-                bename: Build-special-membership-service
-                becommand: mvn clean verify -pl special-membership-service -Pcode-coverage -Pstatic-code-analysis
-
-            - when:
-                condition:
-                  bool: true # Always run!
-
-                steps:
-                  - buildevents/berun:
-                      bename: Record-test-results-special-membership-service
-                      becommand: |
-                        SERVICE=special-membership;
-                        BUILDEVENT_FILE=./${SERVICE}_specific_buildevents_file.txt;
-                        echo " ci.tests.build.completed=$(xpath -q -e 'failsafe-summary/completed/text()'  ${SERVICE}-service/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
-                        echo " ci.tests.build.errors=$(xpath -q -e 'failsafe-summary/errors/text()'  ${SERVICE}-service/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
-                        echo " ci.tests.build.failures=$(xpath -q -e 'failsafe-summary/failures/text()'  ${SERVICE}-service/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
-                        echo " ci.tests.build.skipped=$(xpath -q -e 'failsafe-summary/skipped/text()'  ${SERVICE}-service/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
-
-            - buildevents/berun:
                 bename: Pact-build-and-test-special-membership-service
                 becommand: |
                   mvn verify -pl special-membership-service -Pprovider-pacts -Dpact.verifier.publishResults=true -Dpact.provider.version=`git rev-parse --short HEAD` -Dpactbroker.tags=prod -Dpactbroker.user=rw_user -Dpactbroker.pass=rw_pass
@@ -127,10 +118,6 @@ jobs:
                   docker run --rm --net host ${PACT_CLI_IMG} broker can-i-deploy -v --pacticipant special-membership-service --version `git rev-parse --short HEAD` --to prod --broker-base-url ${PACT_BROKER_URL} --broker-username=rw_user --broker-password=rw_pass
                   # tag pacts as production
                   docker run --rm --net host ${PACT_CLI_IMG} broker create-version-tag --auto-create-version --pacticipant special-membership-service --version `git rev-parse --short HEAD` --tag prod --broker-base-url ${PACT_BROKER_URL} --broker-username=rw_user --broker-password=rw_pass
-
-            - buildevents/berun:
-                bename: Build-credit-score-service
-                becommand: mvn clean verify -pl credit-score-service -Pcode-coverage -Pstatic-code-analysis
 
             - buildevents/berun:
                 bename: Record-test-results-credit-score-service
@@ -161,6 +148,17 @@ workflows:
       - watch:
           requires:
             - setup
-      - build-and-test:
+      - build:
+          matrix:
+            parameters:
+              service: [
+                  "credit-score-service",
+                  "special-membership-service",
+                  "welcome-member-email-service",
+              ]
           requires:
             - setup
+      - pact-test:
+          requires:
+            - setup
+            - build
