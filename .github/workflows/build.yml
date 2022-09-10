@@ -13,6 +13,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
+      FAILSAFE_SUMMARY_FILE: target/failsafe-reports/failsafe-summary.xml
       PACT_CLI_IMG: pactfoundation/pact-cli:0.12.3.0
       PACT_BROKER_URL: localhost:9292
 
@@ -75,7 +76,6 @@ jobs:
         env:
           OUTCOME: ${{ steps.build-welcome-member-email.outcome }}
           SERVICE: welcome-member-email-service
-          FAILSAFE_SUMMARY_FILE: target/failsafe-reports/failsafe-summary.xml
         run: |
           if [[ "${OUTCOME}" =~ "[success|failure]" ]]; then
             BUILDEVENT_FILE="${SERVICE}_buildevents.txt"
@@ -122,15 +122,8 @@ jobs:
         if: always
         env:
           OUTCOME: ${{ steps.pact-welcome-member-email.outcome }}
-          SERVICE: welcome-member-email-service
-          FAILSAFE_SUMMARY_FILE: target/failsafe-reports/failsafe-summary.xml
         run: |
           if [[ "${OUTCOME}" =~ "[success|failure]" ]]; then
-            BUILDEVENT_FILE="${SERVICE}_buildevents.txt"
-            echo " ci.tests.build.completed=$(xpath -q -e 'failsafe-summary/completed/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
-            echo " ci.tests.build.errors=$(xpath -q -e 'failsafe-summary/errors/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
-            echo " ci.tests.build.failures=$(xpath -q -e 'failsafe-summary/failures/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
-            echo " ci.tests.build.skipped=$(xpath -q -e 'failsafe-summary/skipped/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
             buildevents step $TRACE_ID $STEP_ID $STEP_START $STEP_ID
           fi
 
@@ -150,7 +143,6 @@ jobs:
         env:
           OUTCOME: ${{ steps.build-special-membership.outcome }}
           SERVICE: special-membership-service
-          FAILSAFE_SUMMARY_FILE: target/failsafe-reports/failsafe-summary.xml
         run: |
           if [[ "${OUTCOME}" =~ "[success|failure]" ]]; then
             BUILDEVENT_FILE="${SERVICE}_buildevents.txt"
@@ -195,15 +187,8 @@ jobs:
         if: always
         env:
           OUTCOME: ${{ steps.pact-special-membership.outcome }}
-          SERVICE: special-membership-service
-          FAILSAFE_SUMMARY_FILE: target/failsafe-reports/failsafe-summary.xml
         run: |
           if [[ "${OUTCOME}" =~ "[success|failure]" ]]; then
-            BUILDEVENT_FILE="${SERVICE}_buildevents.txt"
-            echo " ci.tests.build.completed=$(xpath -q -e 'failsafe-summary/completed/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
-            echo " ci.tests.build.errors=$(xpath -q -e 'failsafe-summary/errors/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
-            echo " ci.tests.build.failures=$(xpath -q -e 'failsafe-summary/failures/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
-            echo " ci.tests.build.skipped=$(xpath -q -e 'failsafe-summary/skipped/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
             buildevents step $TRACE_ID $STEP_ID $STEP_START $STEP_ID
           fi
 
@@ -223,7 +208,6 @@ jobs:
         env:
           OUTCOME: ${{ steps.build-credit-score.outcome }}
           SERVICE: credit-score-service
-          FAILSAFE_SUMMARY_FILE: target/failsafe-reports/failsafe-summary.xml
         run: |
           if [[ "${OUTCOME}" =~ "[success|failure]" ]]; then
             BUILDEVENT_FILE="${SERVICE}_buildevents.txt"
@@ -256,15 +240,8 @@ jobs:
         if: always
         env:
           OUTCOME: ${{ steps.pact-credit-score.outcome }}
-          SERVICE: credit-score-service
-          FAILSAFE_SUMMARY_FILE: target/failsafe-reports/failsafe-summary.xml
         run: |
           if [[ "${OUTCOME}" =~ "[success|failure]" ]]; then
-            BUILDEVENT_FILE="${SERVICE}_buildevents.txt"
-            echo " ci.tests.build.completed=$(xpath -q -e 'failsafe-summary/completed/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
-            echo " ci.tests.build.errors=$(xpath -q -e 'failsafe-summary/errors/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
-            echo " ci.tests.build.failures=$(xpath -q -e 'failsafe-summary/failures/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
-            echo " ci.tests.build.skipped=$(xpath -q -e 'failsafe-summary/skipped/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
             buildevents step $TRACE_ID $STEP_ID $STEP_START $STEP_ID
           fi
 
