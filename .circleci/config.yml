@@ -12,24 +12,6 @@ commands:
       - run: sudo apt update
       - run: sudo apt install libxml-xpath-perl
 
-
-  build-test-results:
-    parameters:
-      service:
-        type: string
-
-    steps:
-      - run:
-          BUILDEVENT_FILE=./step_specific_buildevents_file.txt;
-          echo "
-          ci.tests.build.completed=$(xpath -q -e 'failsafe-summary/completed/text()'  << parameters.service >>/target/failsafe-reports/failsafe-summary.xml)
-          ci.tests.build.errors=$(xpath -q -e 'failsafe-summary/errors/text()'  << parameters.service >>/target/failsafe-reports/failsafe-summary.xml)
-          ci.tests.build.failures=$(xpath -q -e 'failsafe-summary/failures/text()'  << parameters.service >>/target/failsafe-reports/failsafe-summary.xml)
-          ci.tests.build.skipped=$(xpath -q -e 'failsafe-summary/skipped/text()'  << parameters.service >>/target/failsafe-reports/failsafe-summary.xml)
-          " >> ${BUILDEVENT_FILE};
-          buildevents cmd $CIRCLE_WORKFLOW_ID $BUILDEVENTS_SPAN_ID "<< parameters.service >>-test-results" -- "echo 'sending test results'";
-          rm ./step_specific_buildevents_file.txt
-
 jobs:
 
   setup:
@@ -69,18 +51,14 @@ jobs:
                 becommand: mvn clean verify -pl welcome-member-email-service -Pcode-coverage -Pstatic-code-analysis
 
             - buildevents/berun:
-                bename: Record-test-results-welcome-email-service
+                bename: Record-test-results-welcome-member-email-service
                 becommand: |
-                  BUILDEVENT_FILE=./step_specific_buildevents_file.txt;
-                  echo "
-                    ci.tests.build.completed=$(xpath -q -e 'failsafe-summary/completed/text()'  welcome-memeber-email-service/target/failsafe-reports/failsafe-summary.xml)
-                    ci.tests.build.errors=$(xpath -q -e 'failsafe-summary/errors/text()'  welcome-memeber-email-service/target/failsafe-reports/failsafe-summary.xml)
-                    ci.tests.build.failures=$(xpath -q -e 'failsafe-summary/failures/text()'  welcome-memeber-email-service/target/failsafe-reports/failsafe-summary.xml)
-                    ci.tests.build.skipped=$(xpath -q -e 'failsafe-summary/skipped/text()'  welcome-memeber-email-service/target/failsafe-reports/failsafe-summary.xml)
-                  " >> ${BUILDEVENT_FILE}
-
-            - build-test-results:
-                service: welcome-member-email-service
+                  SERVICE="welcome-member-email";
+                  BUILDEVENT_FILE=./${SERVICE}_specific_buildevents_file.txt;
+                  echo " ci.tests.build.completed=$(xpath -q -e 'failsafe-summary/completed/text()'  ${SERVICE}-service/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
+                  echo " ci.tests.build.errors=$(xpath -q -e 'failsafe-summary/errors/text()'  ${SERVICE}-service/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
+                  echo " ci.tests.build.failures=$(xpath -q -e 'failsafe-summary/failures/text()'  ${SERVICE}-service/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
+                  echo " ci.tests.build.skipped=$(xpath -q -e 'failsafe-summary/skipped/text()'  ${SERVICE}-service/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
 
             - buildevents/berun:
                 bename: Pact-build-and-test-welcome-member-email-service
@@ -102,8 +80,16 @@ jobs:
                 bename: Build-special-membership-service
                 becommand: mvn clean verify -pl special-membership-service -Pcode-coverage -Pstatic-code-analysis
 
-            - build-test-results:
-                service: special-membership-service
+            - buildevents/berun:
+                bename: Record-test-results-special-membership-service
+                becommand: |
+                  SERVICE="special-membership";
+                  BUILDEVENT_FILE=./${SERVICE}_specific_buildevents_file.txt;
+                  echo " ci.tests.build.completed=$(xpath -q -e 'failsafe-summary/completed/text()'  ${SERVICE}-service/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
+                  echo " ci.tests.build.errors=$(xpath -q -e 'failsafe-summary/errors/text()'  ${SERVICE}-service/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
+                  echo " ci.tests.build.failures=$(xpath -q -e 'failsafe-summary/failures/text()'  ${SERVICE}-service/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
+                  echo " ci.tests.build.skipped=$(xpath -q -e 'failsafe-summary/skipped/text()'  ${SERVICE}-service/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
+
 
             - buildevents/berun:
                 bename: Pact-build-and-test-special-membership-service
@@ -127,8 +113,15 @@ jobs:
                 bename: Build-credit-score-service
                 becommand: mvn clean verify -pl credit-score-service -Pcode-coverage -Pstatic-code-analysis
 
-            - build-test-results:
-                service: credit-score-service
+            - buildevents/berun:
+                bename: Record-test-results-credit-score-service
+                becommand: |
+                  SERVICE="credit-score";
+                  BUILDEVENT_FILE=./${SERVICE}_specific_buildevents_file.txt;
+                  echo " ci.tests.build.completed=$(xpath -q -e 'failsafe-summary/completed/text()'  ${SERVICE}-service/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
+                  echo " ci.tests.build.errors=$(xpath -q -e 'failsafe-summary/errors/text()'  ${SERVICE}-service/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
+                  echo " ci.tests.build.failures=$(xpath -q -e 'failsafe-summary/failures/text()'  ${SERVICE}-service/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
+                  echo " ci.tests.build.skipped=$(xpath -q -e 'failsafe-summary/skipped/text()'  ${SERVICE}-service/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
 
             - buildevents/berun:
                 bename: Pact-build-and-test-credit-score-service
