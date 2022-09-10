@@ -118,9 +118,12 @@ jobs:
             docker run --rm --net host ${PACT_CLI_IMG} broker create-version-tag --auto-create-version --pacticipant welcome-member-email-service --version `git rev-parse --short HEAD` --tag prod --broker-base-url ${PACT_BROKER_URL} --broker-username=rw_user --broker-password=rw_pass
 
       - name: "Honeycomb: Finalize Pact build and test welcome-member-email-service"
-        if: contains(fromJson('["success", "failure"]'), steps.pact-welcome-member-email.outcome)
+        if: always()
         run: |
-          buildevents step $TRACE_ID $STEP_ID $STEP_START $STEP_ID
+          if [ contains(fromJson('["success", "failure"]'), steps.pact-welcome-member-email.outcome) ]
+          then
+            buildevents step $TRACE_ID $STEP_ID $STEP_START $STEP_ID
+          fi
 
       - name: Build special-membership-service
         id: build-special-membership
