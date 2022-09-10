@@ -68,7 +68,7 @@ jobs:
           echo "STEP_START=$(date +%s)" >> $GITHUB_ENV
 
           # build
-          buildevents cmd $TRACE_ID $STEP_ID $STEP_ID -- \
+          buildevents cmd $TRACE_ID $STEP_ID 'build-welcome-member-email' -- \
             mvn clean verify -pl welcome-member-email-service -Pcode-coverage -Pstatic-code-analysis
 
       - name: "Honeycomb: Finalize Build welcome-member-email-service"
@@ -131,7 +131,7 @@ jobs:
           echo "STEP_START=${STEP_START}" >> $GITHUB_ENV
 
           # build
-          buildevents cmd $TRACE_ID $STEP_ID $STEP_ID -- \
+          buildevents cmd $TRACE_ID $STEP_ID 'build-special-membership' -- \
             mvn clean verify -pl special-membership-service -Pcode-coverage -Pstatic-code-analysis
 
       - name: "Honeycomb: Finalize Build special-membership-service"
@@ -192,7 +192,7 @@ jobs:
           echo "STEP_START=${STEP_START}" >> $GITHUB_ENV
 
           # build
-          buildevents cmd $TRACE_ID $STEP_ID $STEP_ID -- \
+          buildevents cmd $TRACE_ID $STEP_ID 'build-credit-score' -- \
             mvn clean verify -pl credit-score-service -Pcode-coverage -Pstatic-code-analysis
 
       - name: "Honeycomb: Finalize Build credit-score-service"
