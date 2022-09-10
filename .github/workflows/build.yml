@@ -62,9 +62,9 @@ jobs:
 
       - id: build-welcome-member-email
         run: |
-          STEP_ID=service_build-welcome-member-email-service
+          STEP_ID=build-welcome-member-email
           STEP_START=$(date +%s)
-          echo "STEP_ID=service_build-welcome-member-email-service" >> $GITHUB_ENV
+          echo "STEP_ID=build-welcome-member-email" >> $GITHUB_ENV
           echo "STEP_START=$(date +%s)" >> $GITHUB_ENV
 
           # build
@@ -77,7 +77,6 @@ jobs:
           OUTCOME: ${{ steps.build-welcome-member-email.outcome }}
           SERVICE: welcome-member-email-service
         run: |
-          set +x
           if [[ "${OUTCOME}" =~ "[success|failure]" ]]; then
             BUILDEVENT_FILE="${SERVICE}_buildevents.txt"
             echo " ci.tests.build.completed=$(xpath -q -e 'failsafe-summary/completed/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
@@ -87,9 +86,9 @@ jobs:
             buildevents step $TRACE_ID $STEP_ID $STEP_START $STEP_ID
           fi
 
-      - id: pact-welcome-member-email
+      - id: pact-test-welcome-member-email
         run: |
-          STEP_ID=pact_test-welcome-member-email-service
+          STEP_ID=pact-test-welcome-member-email
           STEP_START=$(date +%s)
 
           false
@@ -122,17 +121,15 @@ jobs:
       - name: "Honeycomb: Finalize Pact build and test welcome-member-email-service"
         if: always()
         env:
-          OUTCOME: ${{ steps.pact-welcome-member-email.outcome }}
+          OUTCOME: ${{ steps.pact-test-welcome-member-email.outcome }}
         run: |
-          set +x
           if [[ "${OUTCOME}" =~ "[success|failure]" ]]; then
             buildevents step $TRACE_ID $STEP_ID $STEP_START $STEP_ID
           fi
 
       - id: build-special-membership
         run: |
-          STEP_ID=service_build-special-membership-service
-          STEP_START=$(date +%s)
+          STEP_ID=build-special-membership-service   STEP_START=$(date +%s)
           echo "STEP_ID=${STEP_ID}" >> $GITHUB_ENV
           echo "STEP_START=${STEP_START}" >> $GITHUB_ENV
 
@@ -146,7 +143,6 @@ jobs:
           OUTCOME: ${{ steps.build-special-membership.outcome }}
           SERVICE: special-membership-service
         run: |
-          set +x
           if [[ "${OUTCOME}" =~ "[success|failure]" ]]; then
             BUILDEVENT_FILE="${SERVICE}_buildevents.txt"
             echo " ci.tests.build.completed=$(xpath -q -e 'failsafe-summary/completed/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
@@ -156,9 +152,9 @@ jobs:
             buildevents step $TRACE_ID $STEP_ID $STEP_START $STEP_ID
           fi
 
-      - id: pact-special-membership
+      - id: pact-test-special-membership
         run: |
-          STEP_ID=pact_test-special-membership-service
+          STEP_ID=pact-test-special-membership
           STEP_START=$(date +%s)
           echo "STEP_ID=${STEP_ID}" >> $GITHUB_ENV
           echo "STEP_START=${STEP_START}" >> $GITHUB_ENV
@@ -189,17 +185,15 @@ jobs:
       - name: "Honeycomb: Finalize Pact build and test special-membership-service"
         if: always()
         env:
-          OUTCOME: ${{ steps.pact-special-membership.outcome }}
+          OUTCOME: ${{ steps.pact-test-special-membership.outcome }}
         run: |
-          set +x
           if [[ "${OUTCOME}" =~ "[success|failure]" ]]; then
             buildevents step $TRACE_ID $STEP_ID $STEP_START $STEP_ID
           fi
 
       - id: build-credit-score
         run: |
-          STEP_ID=service_build-credit-score-service
-          STEP_START=$(date +%s)
+          STEP_ID=build-credit-score-service   STEP_START=$(date +%s)
           echo "STEP_ID=${STEP_ID}" >> $GITHUB_ENV
           echo "STEP_START=${STEP_START}" >> $GITHUB_ENV
 
@@ -213,7 +207,6 @@ jobs:
           OUTCOME: ${{ steps.build-credit-score.outcome }}
           SERVICE: credit-score-service
         run: |
-          set +x
           if [[ "${OUTCOME}" =~ "[success|failure]" ]]; then
             BUILDEVENT_FILE="${SERVICE}_buildevents.txt"
             echo " ci.tests.build.completed=$(xpath -q -e 'failsafe-summary/completed/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
@@ -223,9 +216,9 @@ jobs:
             buildevents step $TRACE_ID $STEP_ID $STEP_START $STEP_ID
           fi
 
-      - id: pact-credit-score
+      - id: pact-test-credit-score
         run: |
-          STEP_ID=pact_test-credit-score-service
+          STEP_ID=pact-test-credit-score
           STEP_START=$(date +%s)
           echo "STEP_ID=${STEP_ID}" >> $GITHUB_ENV
           echo "STEP_START=${STEP_START}" >> $GITHUB_ENV
@@ -244,13 +237,8 @@ jobs:
       - name: "Honeycomb: Finalize Pact build and test credit-score-service"
         if: always()
         env:
-          OUTCOME: ${{ steps.pact-credit-score.outcome }}
+          OUTCOME: ${{ steps.pact-test-credit-score.outcome }}
         run: |
-          set +x
           if [[ "${OUTCOME}" =~ "[success|failure]" ]]; then
             buildevents step $TRACE_ID $STEP_ID $STEP_START $STEP_ID
           fi
-
-      - name: Stop dependencies with docker-compose
-        run: docker-compose -f pact-tools/pact-broker/docker-compose.yml down
-        if: always()
