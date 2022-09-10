@@ -70,10 +70,10 @@ jobs:
             - buildevents/berun:
                 bename: Build-welcome-member-email-service
                 becommand: |
-                  export SERVICE=welcome-member-email-service
-                  false
-                  status_code=$?
-                  export BUILDEVENT_FILE=./${SERVICE}_specific_buildevents_file.txt
+                  SERVICE=welcome-member-email-service;
+                  false;
+                  status_code=$?;
+                  BUILDEVENT_FILE=./${SERVICE}_specific_buildevents_file.txt;
                   echo " ci.tests.build.completed=$(xpath -q -e 'failsafe-summary/completed/text()'  ${SERVICE}/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
                   echo " ci.tests.build.errors=$(xpath -q -e 'failsafe-summary/errors/text()'  ${SERVICE}/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
                   echo " ci.tests.build.failures=$(xpath -q -e 'failsafe-summary/failures/text()'  ${SERVICE}/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
