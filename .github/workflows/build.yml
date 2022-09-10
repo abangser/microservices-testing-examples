@@ -61,7 +61,6 @@ jobs:
 
       - name: Build welcome-member-email-service
         id: build-welcome-member-email
-        continue-on-error: true
         run: |
           STEP_ID=service_build-welcome-member-email-service
           STEP_START=$(date +%s)
@@ -86,8 +85,7 @@ jobs:
           buildevents step $TRACE_ID $STEP_ID $STEP_START $STEP_ID
 
       - name: Pact build and test welcome-member-email-service
-        id: pact-welcome-member-email-service
-        continue-on-error: true
+        id: pact-welcome-member-email
         run: |
           STEP_ID=pact_test-welcome-member-email-service
           STEP_START=$(date +%s)
@@ -126,7 +124,6 @@ jobs:
 
       - name: Build special-membership-service
         id: build-special-membership
-        continue-on-error: true
         run: |
           STEP_ID=service_build-special-membership-service
           STEP_START=$(date +%s)
@@ -152,7 +149,6 @@ jobs:
 
       - name: Pact build and test special-membership-service
         id: pact-special-membership
-        continue-on-error: true
         run: |
           STEP_ID=pact_test-special-membership-service
           STEP_START=$(date +%s)
@@ -189,7 +185,6 @@ jobs:
 
       - name: Build credit-score-service
         id: build-credit-score
-        continue-on-error: true
         run: |
           STEP_ID=service_build-credit-score-service
           STEP_START=$(date +%s)
@@ -215,7 +210,6 @@ jobs:
 
       - name: Pact build and test credit-score-service
         id: pact-credit-score
-        continue-on-error: true
         run: |
           STEP_ID=pact_test-credit-score-service
           STEP_START=$(date +%s)
