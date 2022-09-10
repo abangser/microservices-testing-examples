@@ -60,7 +60,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      - name: build-welcome-member-email
+      - id: build-welcome-member-email
         run: |
           STEP_ID=service_build-welcome-member-email-service
           STEP_START=$(date +%s)
@@ -77,6 +77,7 @@ jobs:
           OUTCOME: ${{ steps.build-welcome-member-email.outcome }}
           SERVICE: welcome-member-email-service
         run: |
+          set +x
           if [[ "${OUTCOME}" =~ "[success|failure]" ]]; then
             BUILDEVENT_FILE="${SERVICE}_buildevents.txt"
             echo " ci.tests.build.completed=$(xpath -q -e 'failsafe-summary/completed/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
@@ -86,7 +87,7 @@ jobs:
             buildevents step $TRACE_ID $STEP_ID $STEP_START $STEP_ID
           fi
 
-      - name: pact-welcome-member-email
+      - id: pact-welcome-member-email
         run: |
           STEP_ID=pact_test-welcome-member-email-service
           STEP_START=$(date +%s)
@@ -123,11 +124,12 @@ jobs:
         env:
           OUTCOME: ${{ steps.pact-welcome-member-email.outcome }}
         run: |
+          set +x
           if [[ "${OUTCOME}" =~ "[success|failure]" ]]; then
             buildevents step $TRACE_ID $STEP_ID $STEP_START $STEP_ID
           fi
 
-      - name: build-special-membership
+      - id: build-special-membership
         run: |
           STEP_ID=service_build-special-membership-service
           STEP_START=$(date +%s)
@@ -144,6 +146,7 @@ jobs:
           OUTCOME: ${{ steps.build-special-membership.outcome }}
           SERVICE: special-membership-service
         run: |
+          set +x
           if [[ "${OUTCOME}" =~ "[success|failure]" ]]; then
             BUILDEVENT_FILE="${SERVICE}_buildevents.txt"
             echo " ci.tests.build.completed=$(xpath -q -e 'failsafe-summary/completed/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
@@ -153,7 +156,7 @@ jobs:
             buildevents step $TRACE_ID $STEP_ID $STEP_START $STEP_ID
           fi
 
-      - name: pact-special-membership
+      - id: pact-special-membership
         run: |
           STEP_ID=pact_test-special-membership-service
           STEP_START=$(date +%s)
@@ -188,11 +191,12 @@ jobs:
         env:
           OUTCOME: ${{ steps.pact-special-membership.outcome }}
         run: |
+          set +x
           if [[ "${OUTCOME}" =~ "[success|failure]" ]]; then
             buildevents step $TRACE_ID $STEP_ID $STEP_START $STEP_ID
           fi
 
-      - name: build-credit-score
+      - id: build-credit-score
         run: |
           STEP_ID=service_build-credit-score-service
           STEP_START=$(date +%s)
@@ -209,6 +213,7 @@ jobs:
           OUTCOME: ${{ steps.build-credit-score.outcome }}
           SERVICE: credit-score-service
         run: |
+          set +x
           if [[ "${OUTCOME}" =~ "[success|failure]" ]]; then
             BUILDEVENT_FILE="${SERVICE}_buildevents.txt"
             echo " ci.tests.build.completed=$(xpath -q -e 'failsafe-summary/completed/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
@@ -218,7 +223,7 @@ jobs:
             buildevents step $TRACE_ID $STEP_ID $STEP_START $STEP_ID
           fi
 
-      - name: pact-credit-score
+      - id: pact-credit-score
         run: |
           STEP_ID=pact_test-credit-score-service
           STEP_START=$(date +%s)
@@ -241,6 +246,7 @@ jobs:
         env:
           OUTCOME: ${{ steps.pact-credit-score.outcome }}
         run: |
+          set +x
           if [[ "${OUTCOME}" =~ "[success|failure]" ]]; then
             buildevents step $TRACE_ID $STEP_ID $STEP_START $STEP_ID
           fi
