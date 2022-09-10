@@ -57,6 +57,8 @@ jobs:
           steps:
             - checkout
 
+            - install-xpath
+
             - run:
                 name: Start-dependencies-with-docker-compose
                 command: docker-compose -f pact-tools/pact-broker/docker-compose.yml up
