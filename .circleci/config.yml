@@ -1,10 +1,23 @@
 version: 2.1
 
 orbs:
+  buildevents: honeycombio/buildevents@0
   docker: circleci/docker@2
   maven: circleci/maven@1
 
 jobs:
+
+  setup:
+    docker:
+      - image: cimg/go:1.18
+    steps:
+      - buildevents/start_trace
+
+  watch:
+    docker:
+      - image: cimg/go:1.18
+    steps:
+      - buildevents/watch_build_and_finish
 
   build-and-test:
     machine:
@@ -100,4 +113,8 @@ jobs:
 workflows:
   build_and_test:
     jobs:
+      - setup
+      - watch:
+          requires:
+            - setup
       - build-and-test
