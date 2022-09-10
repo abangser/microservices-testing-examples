@@ -12,6 +12,7 @@ commands:
       - run: sudo apt update
       - run: sudo apt install libxml-xpath-perl
 
+
   build-test-results:
     parameters:
       service:
@@ -21,12 +22,12 @@ commands:
       - run:
           BUILDEVENT_FILE=./step_specific_buildevents_file.txt;
           echo "
-            ci.tests.build.completed=$(xpath -q -e 'failsafe-summary/completed/text()'  << parameters.service >>/target/failsafe-reports/failsafe-summary.xml)
-            ci.tests.build.errors=$(xpath -q -e 'failsafe-summary/errors/text()'  << parameters.service >>/target/failsafe-reports/failsafe-summary.xml)
-            ci.tests.build.failures=$(xpath -q -e 'failsafe-summary/failures/text()'  << parameters.service >>/target/failsafe-reports/failsafe-summary.xml)
-            ci.tests.build.skipped=$(xpath -q -e 'failsafe-summary/skipped/text()'  << parameters.service >>/target/failsafe-reports/failsafe-summary.xml)
+          ci.tests.build.completed=$(xpath -q -e 'failsafe-summary/completed/text()'  << parameters.service >>/target/failsafe-reports/failsafe-summary.xml)
+          ci.tests.build.errors=$(xpath -q -e 'failsafe-summary/errors/text()'  << parameters.service >>/target/failsafe-reports/failsafe-summary.xml)
+          ci.tests.build.failures=$(xpath -q -e 'failsafe-summary/failures/text()'  << parameters.service >>/target/failsafe-reports/failsafe-summary.xml)
+          ci.tests.build.skipped=$(xpath -q -e 'failsafe-summary/skipped/text()'  << parameters.service >>/target/failsafe-reports/failsafe-summary.xml)
           " >> ${BUILDEVENT_FILE};
-          buildevents cmd $CIRCLE_WORKFLOW_ID $BUILDEVENTS_SPAN_ID "<< parameters.service >>-test-results" -- echo 'sending test results'
+          buildevents cmd $CIRCLE_WORKFLOW_ID $BUILDEVENTS_SPAN_ID "<< parameters.service >>-test-results" -- "echo 'sending test results'";
           rm ./step_specific_buildevents_file.txt
 
 jobs:
@@ -66,6 +67,17 @@ jobs:
             - buildevents/berun:
                 bename: Build-welcome-member-email-service
                 becommand: mvn clean verify -pl welcome-member-email-service -Pcode-coverage -Pstatic-code-analysis
+
+            - buildevents/berun:
+                bename: Record-test-results-welcome-email-service
+                becommand: |
+                  BUILDEVENT_FILE=./step_specific_buildevents_file.txt;
+                  echo "
+                    ci.tests.build.completed=$(xpath -q -e 'failsafe-summary/completed/text()'  welcome-memeber-email-service/target/failsafe-reports/failsafe-summary.xml)
+                    ci.tests.build.errors=$(xpath -q -e 'failsafe-summary/errors/text()'  welcome-memeber-email-service/target/failsafe-reports/failsafe-summary.xml)
+                    ci.tests.build.failures=$(xpath -q -e 'failsafe-summary/failures/text()'  welcome-memeber-email-service/target/failsafe-reports/failsafe-summary.xml)
+                    ci.tests.build.skipped=$(xpath -q -e 'failsafe-summary/skipped/text()'  welcome-memeber-email-service/target/failsafe-reports/failsafe-summary.xml)
+                  " >> ${BUILDEVENT_FILE}
 
             - build-test-results:
                 service: welcome-member-email-service
