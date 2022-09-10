@@ -1,9 +1,9 @@
 version: 2.1
 
 orbs:
-  buildevents: honeycombio/buildevents@0.8.0
-  docker: circleci/docker@2.1.3
-  maven: circleci/maven@1.3.0
+  buildevents: honeycombio/buildevents@0
+  docker: circleci/docker@2
+  maven: circleci/maven@1
 
 commands:
 
@@ -20,26 +20,25 @@ commands:
           buildevents cmd ${CIRCLE_WORKFLOW_ID} ${BUILDEVENTS_SPAN_ID} 'install xpath' -- \
             sudo apt install libxml-xpath-perl
   
-  service-build:
+  build:
     parameters:
       service:
         type: string
 
     steps:
-      - run: ./.circleci/scripts/<< parameters.service >>-build.sh
+      - run: START_TIME=$(date +%s)
+      - run: mvn clean verify -pl << parameters.service >> -Pcode-coverage -Pstatic-code-analysis
       - run:
           name: add test results to span
-          # This is a workaround for `buildevents/add_context` not allowing a `when`
           when: always
           command: |
-            FS_COMPLETED=$(xpath -q -e 'failsafe-summary/completed/text()'  << parameters.service >>/target/failsafe-reports/failsafe-summary.xml)
-            FS_ERRORS=$(xpath -q -e 'failsafe-summary/errors/text()'  << parameters.service >>/target/failsafe-reports/failsafe-summary.xml)
-            FS_FAILURES=$(xpath -q -e 'failsafe-summary/failures/text()'  << parameters.service >>/target/failsafe-reports/failsafe-summary.xml)
-            FS_SKIPPED=$(xpath -q -e 'failsafe-summary/skipped/text()'  << parameters.service >>/target/failsafe-reports/failsafe-summary.xml)
-            echo " ci.reporting.integration.completed=${FS_COMPLETED}" >> /tmp/buildevents/extra_fields.lgfmt
-            echo " ci.reporting.integration.errors=${FS_ERRORS}" >> /tmp/buildevents/extra_fields.lgfmt
-            echo " ci.reporting.integration.failures=${FS_FAILURES}" >> /tmp/buildevents/extra_fields.lgfmt
-            echo " ci.reporting.integration.skipped=${FS_SKIPPED}" >> /tmp/buildevents/extra_fields.lgfmt
+            SPAN_ID=report-test-results-<< parameters.service >>
+            BUILDEVENT_FILE=./<< parameters.service >>_specific_buildevents_file.txt;
+            echo " ci.tests.build.completed=$(xpath -q -e 'failsafe-summary/completed/text()'  << parameters.service >>-service/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
+            echo " ci.tests.build.errors=$(xpath -q -e 'failsafe-summary/errors/text()'  << parameters.service >>-service/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
+            echo " ci.tests.build.failures=$(xpath -q -e 'failsafe-summary/failures/text()'  << parameters.service >>-service/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
+            echo " ci.tests.build.skipped=$(xpath -q -e 'failsafe-summary/skipped/text()'  << parameters.service >>-service/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
+            buildevents step $CIRCLE_WORKFLOW_ID $SPAN_ID $START_TIME $SPAN_ID
 
 jobs:
 
@@ -73,39 +72,14 @@ jobs:
       - buildevents/with_job_span:
           steps:
             - checkout
-            
-            - run:
-                command: |
-                  BUILDEVENTS_SPAN_ID=$(echo ${CIRCLE_JOB}-${CIRCLE_NODE_INDEX} | sha256sum | awk '{print $1}')
-                  echo "export BUILDEVENTS_SPAN_ID=\"${BUILDEVENTS_SPAN_ID}\"" >> $BASH_ENV
-                  echo $BUILDEVENTS_SPAN_ID
-
-            - envvars
 
             - install-xpath
 
-            - run:
-                name: Start dependencies with docker-compose
-                command: |
-                  export BUILDEVENTS_SPAN_ID=$(echo ${CIRCLE_JOB}-${CIRCLE_NODE_INDEX} | sha256sum | awk '{print $1}')
-                  buildevents cmd ${CIRCLE_WORKFLOW_ID} ${BUILDEVENTS_SPAN_ID} 'run dependencies' -- \
-                    docker-compose -f pact-tools/pact-broker/docker-compose.yml up
-                background: true
-
-            - service-build:
+            - build:
                 service: << parameters.service >>
-
-            - run:
-                name: Stop dependencies with docker-compose
-                command: |
-                  BUILDEVENTS_SPAN_ID=$(echo ${CIRCLE_JOB}-${CIRCLE_NODE_INDEX} | sha256sum | awk '{print $1}')
-                  buildevents cmd ${CIRCLE_WORKFLOW_ID} ${BUILDEVENTS_SPAN_ID} 'clean up dependencies' -- \
-                    docker-compose -f pact-tools/pact-broker/docker-compose.yml down
-                when: always
 
 workflows:
   build_and_test:
-    when: ${CIRCLE_BRANCH}=="circleci"
     jobs:
       - setup
       - watch:
