@@ -119,8 +119,10 @@ jobs:
 
       - name: "Honeycomb: Finalize Pact build and test welcome-member-email-service"
         if: always()
+        env:
+          OUTCOME: ${{ steps.pact-welcome-member-email.outcome }}
         run: |
-          if [ contains(fromJson('["success", "failure"]'), steps.pact-welcome-member-email.outcome) ]
+          if [ ${OUTCOME} =~ "^[success|failure]$" ]
           then
             buildevents step $TRACE_ID $STEP_ID $STEP_START $STEP_ID
           fi
