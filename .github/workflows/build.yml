@@ -68,24 +68,20 @@ jobs:
           echo "STEP_START=$(date +%s)" >> $GITHUB_ENV
 
           # build
-          buildevents cmd $TRACE_ID $STEP_ID 'build' -- \
+          buildevents cmd $TRACE_ID $STEP_ID $STEP_ID -- \
             mvn clean verify -pl welcome-member-email-service -Pcode-coverage -Pstatic-code-analysis
 
       - name: "Honeycomb: Finalize Build welcome-member-email-service"
         if: contains(fromJson('["cancelled", "skipped"]'), steps.build-welcome-member-email.conclusion)
+        env:
+          SERVICE: welcome-member-email-service
+          FAILSAFE_SUMMARY_FILE: target/failsafe-reports/failsafe-summary.xml
         run: |
-          BUILDEVENT_FILE="local_buildevents.txt"
-          rm -f ${BUILDEVENT_FILE}
-
-          FS_COMPLETED=$(xpath -q -e 'failsafe-summary/completed/text()'  welcome-member-email-service/target/failsafe-reports/failsafe-summary.xml)
-          FS_ERRORS=$(xpath -q -e 'failsafe-summary/errors/text()'  welcome-member-email-service/target/failsafe-reports/failsafe-summary.xml)
-          FS_FAILURES=$(xpath -q -e 'failsafe-summary/failures/text()'  welcome-member-email-service/target/failsafe-reports/failsafe-summary.xml)
-          FS_SKIPPED=$(xpath -q -e 'failsafe-summary/skipped/text()'  welcome-member-email-service/target/failsafe-reports/failsafe-summary.xml)
-          echo " ci.tests.build.completed=${FS_COMPLETED}" >> $BUILDEVENT_FILE
-          echo " ci.tests.build.errors=${FS_ERRORS}" >> $BUILDEVENT_FILE
-          echo " ci.tests.build.failures=${FS_FAILURES}" >> $BUILDEVENT_FILE
-          echo " ci.tests.build.skipped=${FS_SKIPPED}" >> $BUILDEVENT_FILE
-
+          BUILDEVENT_FILE="${SERVICE}_buildevents.txt"
+          echo " ci.tests.build.completed=$(xpath -q -e 'failsafe-summary/completed/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
+          echo " ci.tests.build.errors=$(xpath -q -e 'failsafe-summary/errors/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
+          echo " ci.tests.build.failures=$(xpath -q -e 'failsafe-summary/failures/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
+          echo " ci.tests.build.skipped=$(xpath -q -e 'failsafe-summary/skipped/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
           buildevents step $TRACE_ID $STEP_ID $STEP_START $STEP_ID
 
       - name: Pact build and test welcome-member-email-service
@@ -95,7 +91,7 @@ jobs:
           STEP_START=$(date +%s)
 
           false
-          
+
           echo "STEP_ID=${STEP_ID}" >> $GITHUB_ENV
           echo "STEP_START=${STEP_START}" >> $GITHUB_ENV
 
@@ -135,24 +131,20 @@ jobs:
           echo "STEP_START=${STEP_START}" >> $GITHUB_ENV
 
           # build
-          buildevents cmd $TRACE_ID $STEP_ID 'build' -- \
+          buildevents cmd $TRACE_ID $STEP_ID $STEP_ID -- \
             mvn clean verify -pl special-membership-service -Pcode-coverage -Pstatic-code-analysis
 
       - name: "Honeycomb: Finalize Build special-membership-service"
         if: contains(fromJson('["cancelled", "skipped"]'), steps.build-special-membership.conclusion)
+        env:
+          SERVICE: welcome-member-email-service
+          FAILSAFE_SUMMARY_FILE: target/failsafe-reports/failsafe-summary.xml
         run: |
-          BUILDEVENT_FILE="local_buildevents.txt"
-          rm -f ${BUILDEVENT_FILE}
-
-          FS_COMPLETED=$(xpath -q -e 'failsafe-summary/completed/text()'  special-membership-service/target/failsafe-reports/failsafe-summary.xml)
-          FS_ERRORS=$(xpath -q -e 'failsafe-summary/errors/text()'  special-membership-service/target/failsafe-reports/failsafe-summary.xml)
-          FS_FAILURES=$(xpath -q -e 'failsafe-summary/failures/text()'  special-membership-service/target/failsafe-reports/failsafe-summary.xml)
-          FS_SKIPPED=$(xpath -q -e 'failsafe-summary/skipped/text()'  special-membership-service/target/failsafe-reports/failsafe-summary.xml)
-          echo " ci.tests.build.completed=${FS_COMPLETED}" >> $BUILDEVENT_FILE
-          echo " ci.tests.build.errors=${FS_ERRORS}" >> $BUILDEVENT_FILE
-          echo " ci.tests.build.failures=${FS_FAILURES}" >> $BUILDEVENT_FILE
-          echo " ci.tests.build.skipped=${FS_SKIPPED}" >> $BUILDEVENT_FILE
-
+          BUILDEVENT_FILE="${SERVICE}_buildevents.txt"
+          echo " ci.tests.build.completed=$(xpath -q -e 'failsafe-summary/completed/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
+          echo " ci.tests.build.errors=$(xpath -q -e 'failsafe-summary/errors/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
+          echo " ci.tests.build.failures=$(xpath -q -e 'failsafe-summary/failures/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
+          echo " ci.tests.build.skipped=$(xpath -q -e 'failsafe-summary/skipped/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
           buildevents step $TRACE_ID $STEP_ID $STEP_START $STEP_ID
 
       - name: Pact build and test special-membership-service
@@ -200,24 +192,20 @@ jobs:
           echo "STEP_START=${STEP_START}" >> $GITHUB_ENV
 
           # build
-          buildevents cmd $TRACE_ID $STEP_ID 'build' -- \
+          buildevents cmd $TRACE_ID $STEP_ID $STEP_ID -- \
             mvn clean verify -pl credit-score-service -Pcode-coverage -Pstatic-code-analysis
 
       - name: "Honeycomb: Finalize Build credit-score-service"
         if: contains(fromJson('["cancelled", "skipped"]'), steps.build-credit-score.conclusion)
+        env:
+          SERVICE: welcome-member-email-service
+          FAILSAFE_SUMMARY_FILE: target/failsafe-reports/failsafe-summary.xml
         run: |
-          BUILDEVENT_FILE="local_buildevents.txt"
-          rm -f ${BUILDEVENT_FILE}
-
-          FS_COMPLETED=$(xpath -q -e 'failsafe-summary/completed/text()'  credit-score-service/target/failsafe-reports/failsafe-summary.xml)
-          FS_ERRORS=$(xpath -q -e 'failsafe-summary/errors/text()'  credit-score-service/target/failsafe-reports/failsafe-summary.xml)
-          FS_FAILURES=$(xpath -q -e 'failsafe-summary/failures/text()'  credit-score-service/target/failsafe-reports/failsafe-summary.xml)
-          FS_SKIPPED=$(xpath -q -e 'failsafe-summary/skipped/text()'  credit-score-service/target/failsafe-reports/failsafe-summary.xml)
-          echo " ci.tests.build.completed=${FS_COMPLETED}" >> $BUILDEVENT_FILE
-          echo " ci.tests.build.errors=${FS_ERRORS}" >> $BUILDEVENT_FILE
-          echo " ci.tests.build.failures=${FS_FAILURES}" >> $BUILDEVENT_FILE
-          echo " ci.tests.build.skipped=${FS_SKIPPED}" >> $BUILDEVENT_FILE
-
+          BUILDEVENT_FILE="${SERVICE}_buildevents.txt"
+          echo " ci.tests.build.completed=$(xpath -q -e 'failsafe-summary/completed/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
+          echo " ci.tests.build.errors=$(xpath -q -e 'failsafe-summary/errors/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
+          echo " ci.tests.build.failures=$(xpath -q -e 'failsafe-summary/failures/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
+          echo " ci.tests.build.skipped=$(xpath -q -e 'failsafe-summary/skipped/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
           buildevents step $TRACE_ID $STEP_ID $STEP_START $STEP_ID
 
       - name: Pact build and test credit-score-service
