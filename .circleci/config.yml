@@ -67,17 +67,17 @@ jobs:
                 command: docker-compose -f pact-tools/pact-broker/docker-compose.yml up
                 background: true
 
-            - run: exit 1
-
-            - run:
-                when: always
-                command: echo hello
-
-            - when:
-                condition: true
-                run:
-                  - record-test-results:
-                      service: welcome-member-email-service
+            - buildevents/berun:
+                bename: Build-welcome-member-email-service
+                becommand: |
+                  SERVICE=welcome-member-email-service
+                  false
+                  status_code=$?
+                  BUILDEVENT_FILE=./${SERVICE}_specific_buildevents_file.txt;
+                  echo " ci.tests.build.completed=$(xpath -q -e 'failsafe-summary/completed/text()'  ${SERVICE}/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
+                  echo " ci.tests.build.errors=$(xpath -q -e 'failsafe-summary/errors/text()'  ${SERVICE}/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
+                  echo " ci.tests.build.failures=$(xpath -q -e 'failsafe-summary/failures/text()'  ${SERVICE}/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
+                  echo " ci.tests.build.skipped=$(xpath -q -e 'failsafe-summary/skipped/text()'  ${SERVICE}/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
 
             - buildevents/berun:
                 bename: Pact-build-and-test-welcome-member-email-service
