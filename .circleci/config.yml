@@ -26,7 +26,7 @@ commands:
           buildevents cmd ${CIRCLE_WORKFLOW_ID} ${BUILDEVENTS_SPAN_ID} "build << parameters.service >>" -- \
             mvn clean verify -pl << parameters.service >> -Pcode-coverage -Pstatic-code-analysis
       - run:
-          name: add test results to span
+          name: add-test-results-to-span
           when: always
           command: |
             BUILDEVENT_FILE=/tmp/<< parameters.service >>_specific_buildevents_file.txt
