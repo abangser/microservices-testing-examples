@@ -48,17 +48,20 @@ jobs:
 
             - buildevents/berun:
                 bename: Build-welcome-member-email-service
-                becommand: mvn clean verify -pl welcome-member-email-service -Pcode-coverage -Pstatic-code-analysis
+                becommand: exit 1
 
-            - buildevents/berun:
-                bename: Record-test-results-welcome-member-email-service
-                becommand: |
-                  SERVICE="welcome-member-email";
-                  BUILDEVENT_FILE=./${SERVICE}_specific_buildevents_file.txt;
-                  echo " ci.tests.build.completed=$(xpath -q -e 'failsafe-summary/completed/text()'  ${SERVICE}-service/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
-                  echo " ci.tests.build.errors=$(xpath -q -e 'failsafe-summary/errors/text()'  ${SERVICE}-service/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
-                  echo " ci.tests.build.failures=$(xpath -q -e 'failsafe-summary/failures/text()'  ${SERVICE}-service/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
-                  echo " ci.tests.build.skipped=$(xpath -q -e 'failsafe-summary/skipped/text()'  ${SERVICE}-service/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
+            - when:
+                condition: on_fail || on_success
+                steps:
+                  - buildevents/berun:
+                      bename: Record-test-results-welcome-member-email-service
+                      becommand: |
+                        SERVICE=welcome-member-email;
+                        BUILDEVENT_FILE=./${SERVICE}_specific_buildevents_file.txt;
+                        echo " ci.tests.build.completed=$(xpath -q -e 'failsafe-summary/completed/text()'  ${SERVICE}-service/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
+                        echo " ci.tests.build.errors=$(xpath -q -e 'failsafe-summary/errors/text()'  ${SERVICE}-service/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
+                        echo " ci.tests.build.failures=$(xpath -q -e 'failsafe-summary/failures/text()'  ${SERVICE}-service/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
+                        echo " ci.tests.build.skipped=$(xpath -q -e 'failsafe-summary/skipped/text()'  ${SERVICE}-service/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
 
             - buildevents/berun:
                 bename: Pact-build-and-test-welcome-member-email-service
@@ -83,7 +86,7 @@ jobs:
             - buildevents/berun:
                 bename: Record-test-results-special-membership-service
                 becommand: |
-                  SERVICE="special-membership";
+                  SERVICE=special-membership;
                   BUILDEVENT_FILE=./${SERVICE}_specific_buildevents_file.txt;
                   echo " ci.tests.build.completed=$(xpath -q -e 'failsafe-summary/completed/text()'  ${SERVICE}-service/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
                   echo " ci.tests.build.errors=$(xpath -q -e 'failsafe-summary/errors/text()'  ${SERVICE}-service/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
@@ -116,7 +119,7 @@ jobs:
             - buildevents/berun:
                 bename: Record-test-results-credit-score-service
                 becommand: |
-                  SERVICE="credit-score";
+                  SERVICE=credit-score;
                   BUILDEVENT_FILE=./${SERVICE}_specific_buildevents_file.txt;
                   echo " ci.tests.build.completed=$(xpath -q -e 'failsafe-summary/completed/text()'  ${SERVICE}-service/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
                   echo " ci.tests.build.errors=$(xpath -q -e 'failsafe-summary/errors/text()'  ${SERVICE}-service/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
