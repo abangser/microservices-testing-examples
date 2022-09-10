@@ -93,6 +93,9 @@ jobs:
         run: |
           STEP_ID=pact_test-welcome-member-email-service
           STEP_START=$(date +%s)
+
+          false
+          
           echo "STEP_ID=${STEP_ID}" >> $GITHUB_ENV
           echo "STEP_START=${STEP_START}" >> $GITHUB_ENV
 
