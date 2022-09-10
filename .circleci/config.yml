@@ -1,19 +1,39 @@
 version: 2.1
 
 orbs:
-  docker: circleci/docker@2.1.3
-  maven: circleci/maven@1.3.0
+  docker: circleci/docker@2
+  maven: circleci/maven@1
 
-commands:
-  welcome-member-email-service:
+jobs:
+
+  build-and-test:
+    machine:
+      image: ubuntu-2204:2022.04.2
+
+    environment:
+      PACT_CLI_IMG: pactfoundation/pact-cli:0.12.3.0
+      PACT_BROKER_URL: localhost:9292
+
     steps:
+      - checkout
+
       - run:
-          name: build-and-test-welcome-member-email-service
+          name: Start-dependencies-with-docker-compose
+          command: docker-compose -f pact-tools/pact-broker/docker-compose.yml up
+          background: true
+
+      - run:
+          name: Build welcome-member-email-service
+          command: mvn clean verify -pl credit-score-service -Pcode-coverage -Pstatic-code-analysis
+
+      - run:
+          name: Pact build and test welcome-member-email-service
           command: |
-            # build
-            mvn clean verify -pl welcome-member-email-service -Pcode-coverage -Pstatic-code-analysis
+            mvn verify -pl credit-score-service -Pprovider-pacts -Dpact.verifier.publishResults=true -Dpact.provider.version=`git rev-parse --short HEAD` -Dpactbroker.tags=prod -Dpactbroker.user=rw_user -Dpactbroker.pass=rw_pass
+
       - run:
-          name: pact-testing-welcome-member-email-service
+          name: Pact build and test welcome-member-email-service
+          command: |
             # verify pacts
             ## No pacts to verify
             # create pacts
@@ -28,17 +48,14 @@ commands:
             # can-i-deploy
             docker run --rm --net host ${PACT_CLI_IMG} broker can-i-deploy -v --pacticipant welcome-member-email-service --version `git rev-parse --short HEAD` --to prod --broker-base-url ${PACT_BROKER_URL} --broker-username=rw_user --broker-password=rw_pass
             # tag pacts as production
-            docker run --rm --net host ${PACT_CLI_IMG} broker create-version-tag --pacticipant welcome-member-email-service --version `git rev-parse --short HEAD` --tag prod --broker-base-url ${PACT_BROKER_URL} --broker-username=rw_user --broker-password=rw_pass
+            docker run --rm --net host ${PACT_CLI_IMG} broker create-version-tag --auto-create-version --pacticipant welcome-member-email-service --version `git rev-parse --short HEAD` --tag prod --broker-base-url ${PACT_BROKER_URL} --broker-username=rw_user --broker-password=rw_pass
 
-  special-membership-service:
-    steps:
       - run:
-          name: build-special-membership-service
-          command: |
-            # build
-            mvn clean verify -pl special-membership-service -Pcode-coverage -Pstatic-code-analysis
+          name: Build special-membership-service
+          command: mvn clean verify -pl special-membership-service -Pcode-coverage -Pstatic-code-analysis
+
       - run:
-          name: pact-testing-special-membership-service
+          name: Pact build and test special-membership-service
           command: |
             # verify pacts
             mvn verify -pl special-membership-service -Pprovider-pacts -Dpact.verifier.publishResults=true -Dpact.provider.version=`git rev-parse --short HEAD` -Dpactbroker.tags=prod -Dpactbroker.user=rw_user -Dpactbroker.pass=rw_pass
@@ -54,17 +71,15 @@ commands:
             # can-i-deploy
             docker run --rm --net host ${PACT_CLI_IMG} broker can-i-deploy -v --pacticipant special-membership-service --version `git rev-parse --short HEAD` --to prod --broker-base-url ${PACT_BROKER_URL} --broker-username=rw_user --broker-password=rw_pass
             # tag pacts as production
-            docker run --rm --net host ${PACT_CLI_IMG} broker create-version-tag --pacticipant special-membership-service --version `git rev-parse --short HEAD` --tag prod --broker-base-url ${PACT_BROKER_URL} --broker-username=rw_user --broker-password=rw_pass
+            docker run --rm --net host ${PACT_CLI_IMG} broker create-version-tag --auto-create-version --pacticipant special-membership-service --version `git rev-parse --short HEAD` --tag prod --broker-base-url ${PACT_BROKER_URL} --broker-username=rw_user --broker-password=rw_pass
 
-  credit-score-service:
-    steps:
       - run:
-          name: build-and-test-credit-score-service
+          name: Build credit-score-service
+          command: mvn clean verify -pl credit-score-service -Pcode-coverage -Pstatic-code-analysis
+
+      - run:
+          name: Pact build and test credit-score-service
           command: |
-            # build
-            mvn clean verify -pl credit-score-service -Pcode-coverage -Pstatic-code-analysis
-      - run:
-          name: pact-testing-credit-score-service
             # verify pacts
             mvn verify -pl credit-score-service -Pprovider-pacts -Dpact.verifier.publishResults=true -Dpact.provider.version=`git rev-parse --short HEAD` -Dpactbroker.tags=prod -Dpactbroker.user=rw_user -Dpactbroker.pass=rw_pass
             # create pacts
@@ -72,34 +87,17 @@ commands:
             # can-i-deploy
             ## no need to run since it doesn't create any pacts
             # tag pacts as production
-            docker run --rm --net host ${PACT_CLI_IMG} broker create-version-tag --pacticipant credit-score-service --version `git rev-parse --short HEAD` --tag prod --broker-base-url ${PACT_BROKER_URL} --broker-username=rw_user --broker-password=rw_pass
+            docker run --rm --net host ${PACT_CLI_IMG} broker create-version-tag --auto-create-version --pacticipant credit-score-service --version `git rev-parse --short HEAD` --tag prod --broker-base-url ${PACT_BROKER_URL} --broker-username=rw_user --broker-password=rw_pass
 
-
-jobs:
-
-  build_and_test:
-    machine:
-      image: ubuntu-2204:2022.04.2
-
-    environment:
-      PACT_CLI_IMG: pactfoundation/pact-cli:0.12.3.0
-      PACT_BROKER_URL: localhost:9292
-
-    steps:
-      - checkout
-      - run:
-          name: Start-dependencies-with-docker-compose
-          command: docker-compose -f pact-tools/pact-broker/docker-compose.yml up
-          background: true
-      - welcome-member-email-service
-      - special-membership-service
-      - credit-score-service
-      - run:
-          name: Stop-dependencies-with-docker-compose
-          command: docker-compose -f pact-tools/pact-broker/docker-compose.yml down
-          when: always
+      - when:
+          condition:
+            bool: true # Always run!
+          steps:
+            - run:
+                name: Stop-dependencies-with-docker-compose
+                command: docker-compose -f pact-tools/pact-broker/docker-compose.yml down
 
 workflows:
   build_and_test:
     jobs:
-      - build_and_test
+      - build-and-test
