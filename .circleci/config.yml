@@ -26,10 +26,11 @@ commands:
           buildevents cmd ${CIRCLE_WORKFLOW_ID} ${BUILDEVENTS_SPAN_ID} "build << parameters.service >>" -- \
             mvn clean verify -pl << parameters.service >> -Pcode-coverage -Pstatic-code-analysis
       - run:
-          name: add-test-results-to-span
           when: always
+          environment:
+            BUILDEVENT_FILE: /tmp/<< parameters.service >>_specific_buildevents_file.txt
+          name: add-test-results-to-span
           command: |
-            BUILDEVENT_FILE=/tmp/<< parameters.service >>_specific_buildevents_file.txt
             echo " ci.tests.build.completed=$(xpath -q -e 'failsafe-summary/completed/text()'  << parameters.service >>/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE
             echo " ci.tests.build.errors=$(xpath -q -e 'failsafe-summary/errors/text()'  << parameters.service >>/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE
             echo " ci.tests.build.failures=$(xpath -q -e 'failsafe-summary/failures/text()'  << parameters.service >>/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE
