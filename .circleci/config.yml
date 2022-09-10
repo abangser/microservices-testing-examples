@@ -38,16 +38,16 @@ jobs:
                 background: true
 
             - buildevents/berun:
-                bename: "Build welcome-member-email-service"
+                bename: Build-welcome-member-email-service
                 becommand: mvn clean verify -pl credit-score-service -Pcode-coverage -Pstatic-code-analysis
 
             - buildevents/berun:
-                bename: "Pact build and test welcome-member-email-service"
+                bename: Pact-build-and-test-welcome-member-email-service
                 becommand: |
                   mvn verify -pl credit-score-service -Pprovider-pacts -Dpact.verifier.publishResults=true -Dpact.provider.version=`git rev-parse --short HEAD` -Dpactbroker.tags=prod -Dpactbroker.user=rw_user -Dpactbroker.pass=rw_pass
 
             - buildevents/berun:
-                bename: "Pact build and test welcome-member-email-service"
+                bename: Pact-build-and-test-welcome-member-email-service
                 becommand: |
                   # verify pacts
                   ## No pacts to verify
@@ -66,11 +66,11 @@ jobs:
                   docker run --rm --net host ${PACT_CLI_IMG} broker create-version-tag --auto-create-version --pacticipant welcome-member-email-service --version `git rev-parse --short HEAD` --tag prod --broker-base-url ${PACT_BROKER_URL} --broker-username=rw_user --broker-password=rw_pass
 
             - buildevents/berun:
-                bename: "Build special-membership-service"
+                bename: Build-special-membership-service
                 becommand: mvn clean verify -pl special-membership-service -Pcode-coverage -Pstatic-code-analysis
 
             - buildevents/berun:
-                bename: "Pact build and test special-membership-service"
+                bename: Pact-build-and-test-special-membership-service
                 becommand: |
                   # verify pacts
                   mvn verify -pl special-membership-service -Pprovider-pacts -Dpact.verifier.publishResults=true -Dpact.provider.version=`git rev-parse --short HEAD` -Dpactbroker.tags=prod -Dpactbroker.user=rw_user -Dpactbroker.pass=rw_pass
@@ -89,11 +89,11 @@ jobs:
                   docker run --rm --net host ${PACT_CLI_IMG} broker create-version-tag --auto-create-version --pacticipant special-membership-service --version `git rev-parse --short HEAD` --tag prod --broker-base-url ${PACT_BROKER_URL} --broker-username=rw_user --broker-password=rw_pass
 
             - buildevents/berun:
-                bename: "Build credit-score-service"
+                bename: Build-credit-score-service
                 becommand: mvn clean verify -pl credit-score-service -Pcode-coverage -Pstatic-code-analysis
 
             - buildevents/berun:
-                bename: "Pact build and test credit-score-service"
+                bename: Pact-build-and-test-credit-score-service
                 becommand: |
                   # verify pacts
                   mvn verify -pl credit-score-service -Pprovider-pacts -Dpact.verifier.publishResults=true -Dpact.provider.version=`git rev-parse --short HEAD` -Dpactbroker.tags=prod -Dpactbroker.user=rw_user -Dpactbroker.pass=rw_pass
