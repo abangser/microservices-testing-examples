@@ -77,7 +77,7 @@ jobs:
           OUTCOME: ${{ steps.build-welcome-member-email.outcome }}
           SERVICE: welcome-member-email-service
         run: |
-          if [[ "${OUTCOME}" == "success" || "${OUTCOME} == "failure" ]]; then
+          if echo $OUTCOME | grep -wq -e success -e failure; then
             BUILDEVENT_FILE="${SERVICE}_buildevents.txt"
             echo " ci.tests.build.completed=$(xpath -q -e 'failsafe-summary/completed/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
             echo " ci.tests.build.errors=$(xpath -q -e 'failsafe-summary/errors/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
@@ -125,7 +125,7 @@ jobs:
         env:
           OUTCOME: ${{ steps.pact-test-welcome-member-email.outcome }}
         run: |
-          if [[ "${OUTCOME}" == "success" || "${OUTCOME} == "failure" ]]; then
+          if echo $OUTCOME | grep -wq -e success -e failure; then
             buildevents step $TRACE_ID $STEP_ID $STEP_START $STEP_ID
           else
             echo "span never started, will not send event"
@@ -147,7 +147,7 @@ jobs:
           OUTCOME: ${{ steps.build-special-membership.outcome }}
           SERVICE: special-membership-service
         run: |
-          if [[ "${OUTCOME}" == "success" || "${OUTCOME} == "failure" ]]; then
+          if echo $OUTCOME | grep -wq -e success -e failure; then
             BUILDEVENT_FILE="${SERVICE}_buildevents.txt"
             echo " ci.tests.build.completed=$(xpath -q -e 'failsafe-summary/completed/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
             echo " ci.tests.build.errors=$(xpath -q -e 'failsafe-summary/errors/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
@@ -193,7 +193,7 @@ jobs:
         env:
           OUTCOME: ${{ steps.pact-test-special-membership.outcome }}
         run: |
-          if [[ "${OUTCOME}" == "success" || "${OUTCOME} == "failure" ]]; then
+          if echo $OUTCOME | grep -wq -e success -e failure; then
             buildevents step $TRACE_ID $STEP_ID $STEP_START $STEP_ID
           else
             echo "span never started, will not send event"
@@ -215,7 +215,7 @@ jobs:
           OUTCOME: ${{ steps.build-credit-score.outcome }}
           SERVICE: credit-score-service
         run: |
-          if [[ "${OUTCOME}" == "success" || "${OUTCOME} == "failure" ]]; then
+          if echo $OUTCOME | grep -wq -e success -e failure; then
             BUILDEVENT_FILE="${SERVICE}_buildevents.txt"
             echo " ci.tests.build.completed=$(xpath -q -e 'failsafe-summary/completed/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
             echo " ci.tests.build.errors=$(xpath -q -e 'failsafe-summary/errors/text()'  ${SERVICE}/${FAILSAFE_SUMMARY_FILE})" >> $BUILDEVENT_FILE
@@ -249,7 +249,7 @@ jobs:
         env:
           OUTCOME: ${{ steps.pact-test-credit-score.outcome }}
         run: |
-          if [[ "${OUTCOME}" == "success" || "${OUTCOME} == "failure" ]]; then
+          if echo $OUTCOME | grep -wq -e success -e failure; then
             buildevents step $TRACE_ID $STEP_ID $STEP_START $STEP_ID
           else
             echo "span never started, will not send event"
