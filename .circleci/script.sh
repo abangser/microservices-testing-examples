@@ -1,8 +1,6 @@
 #! /bin/sh
 
-false
-status_code=$?
-
+PATH=$PATH:/tmp/buildevents/be/bin-linux:/tmp/be/bin-linux
 BUILDEVENT_FILE=./${SERVICE}_specific_buildevents_file.txt
 
 cat << 'EOF' >> ${BUILDEVENT_FILE}
@@ -12,4 +10,6 @@ ci.tests.build.failures=$(xpath -q -e 'failsafe-summary/failures/text()'  ${SERV
 ci.tests.build.skipped=$(xpath -q -e 'failsafe-summary/skipped/text()'  ${SERVICE}/target/failsafe-reports/failsafe-summary.xml)
 EOF
 
-exit $status_code
+buildevents cmd $CIRCLE_WORKFLOW_ID \
+    $(cat /tmp/buildevents/be/${CIRCLE_JOB}-${CIRCLE_NODE_INDEX}/span_id) \
+    ${SERVICE}-test-results -- echo "test results reported"

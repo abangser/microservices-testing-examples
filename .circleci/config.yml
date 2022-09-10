@@ -69,7 +69,11 @@ jobs:
 
             - buildevents/berun:
                 bename: Build-welcome-member-email-service
-                becommand: "SERVICE=welcome-member-email-service .circleci/script.sh"
+                becommand: false
+
+            - run:
+                when: always
+                command: SERVICE=welcome-member-email-service ./.circleci/script.sh
 
             - buildevents/berun:
                 bename: Pact-build-and-test-welcome-member-email-service
