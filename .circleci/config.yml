@@ -7,10 +7,6 @@ orbs:
 
 commands:
 
-  envvars:
-    steps:
-      - run: echo ${BUILDEVENTS_SPAN_ID}
-
   install-xpath:
     steps:
       - run: |
@@ -34,10 +30,10 @@ commands:
           command: |
             SPAN_ID=report-test-results-<< parameters.service >>
             BUILDEVENT_FILE=./<< parameters.service >>_specific_buildevents_file.txt;
-            echo " ci.tests.build.completed=$(xpath -q -e 'failsafe-summary/completed/text()'  << parameters.service >>-service/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
-            echo " ci.tests.build.errors=$(xpath -q -e 'failsafe-summary/errors/text()'  << parameters.service >>-service/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
-            echo " ci.tests.build.failures=$(xpath -q -e 'failsafe-summary/failures/text()'  << parameters.service >>-service/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
-            echo " ci.tests.build.skipped=$(xpath -q -e 'failsafe-summary/skipped/text()'  << parameters.service >>-service/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
+            echo " ci.tests.build.completed=$(xpath -q -e 'failsafe-summary/completed/text()'  << parameters.service >>/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
+            echo " ci.tests.build.errors=$(xpath -q -e 'failsafe-summary/errors/text()'  << parameters.service >>/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
+            echo " ci.tests.build.failures=$(xpath -q -e 'failsafe-summary/failures/text()'  << parameters.service >>/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
+            echo " ci.tests.build.skipped=$(xpath -q -e 'failsafe-summary/skipped/text()'  << parameters.service >>/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
             buildevents step $CIRCLE_WORKFLOW_ID $SPAN_ID $START_TIME $SPAN_ID
 
 jobs:
