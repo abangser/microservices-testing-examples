@@ -50,20 +50,19 @@ jobs:
                 bename: Build-welcome-member-email-service
                 becommand: exit 1
 
-            - run:
-                when: on_fail || on_success
-                name: Record-test-results-welcome-member-email-service
-                command: |
-                  PATH=$PATH:/tmp/buildevents/be/bin-linux:/tmp/be/bin-linux
-                  SERVICE=welcome-member-email
-                  BUILDEVENT_FILE=./${SERVICE}_specific_buildevents_file.txt
-                  echo " ci.tests.build.completed=$(xpath -q -e 'failsafe-summary/completed/text()'  ${SERVICE}-service/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
-                  echo " ci.tests.build.errors=$(xpath -q -e 'failsafe-summary/errors/text()'  ${SERVICE}-service/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
-                  echo " ci.tests.build.failures=$(xpath -q -e 'failsafe-summary/failures/text()'  ${SERVICE}-service/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
-                  echo " ci.tests.build.skipped=$(xpath -q -e 'failsafe-summary/skipped/text()'  ${SERVICE}-service/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
-                  buildevents cmd $CIRCLE_WORKFLOW_ID \
-                    $(cat /tmp/buildevents/be/${CIRCLE_JOB}-${CIRCLE_NODE_INDEX}/span_id) \
-                    Record-test-results-$SERVICE -- echo "recording test results"
+            - when:
+                condition:
+                  bool: true # Always run!
+                steps:
+                  - buildevents/berun:
+                      bename: Record-test-results-welcome-member-email-service
+                      becommand: |
+                        SERVICE=welcome-member-email;
+                        BUILDEVENT_FILE=./${SERVICE}_specific_buildevents_file.txt;
+                        echo " ci.tests.build.completed=$(xpath -q -e 'failsafe-summary/completed/text()'  ${SERVICE}-service/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
+                        echo " ci.tests.build.errors=$(xpath -q -e 'failsafe-summary/errors/text()'  ${SERVICE}-service/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
+                        echo " ci.tests.build.failures=$(xpath -q -e 'failsafe-summary/failures/text()'  ${SERVICE}-service/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
+                        echo " ci.tests.build.skipped=$(xpath -q -e 'failsafe-summary/skipped/text()'  ${SERVICE}-service/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
 
             - buildevents/berun:
                 bename: Pact-build-and-test-welcome-member-email-service
@@ -85,16 +84,20 @@ jobs:
                 bename: Build-special-membership-service
                 becommand: mvn clean verify -pl special-membership-service -Pcode-coverage -Pstatic-code-analysis
 
-            - buildevents/berun:
-                bename: Record-test-results-special-membership-service
-                becommand: |
-                  SERVICE=special-membership;
-                  BUILDEVENT_FILE=./${SERVICE}_specific_buildevents_file.txt;
-                  echo " ci.tests.build.completed=$(xpath -q -e 'failsafe-summary/completed/text()'  ${SERVICE}-service/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
-                  echo " ci.tests.build.errors=$(xpath -q -e 'failsafe-summary/errors/text()'  ${SERVICE}-service/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
-                  echo " ci.tests.build.failures=$(xpath -q -e 'failsafe-summary/failures/text()'  ${SERVICE}-service/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
-                  echo " ci.tests.build.skipped=$(xpath -q -e 'failsafe-summary/skipped/text()'  ${SERVICE}-service/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
+            - when:
+                condition:
+                  bool: true # Always run!
 
+                steps:
+                  - buildevents/berun:
+                      bename: Record-test-results-special-membership-service
+                      becommand: |
+                        SERVICE=special-membership;
+                        BUILDEVENT_FILE=./${SERVICE}_specific_buildevents_file.txt;
+                        echo " ci.tests.build.completed=$(xpath -q -e 'failsafe-summary/completed/text()'  ${SERVICE}-service/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
+                        echo " ci.tests.build.errors=$(xpath -q -e 'failsafe-summary/errors/text()'  ${SERVICE}-service/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
+                        echo " ci.tests.build.failures=$(xpath -q -e 'failsafe-summary/failures/text()'  ${SERVICE}-service/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
+                        echo " ci.tests.build.skipped=$(xpath -q -e 'failsafe-summary/skipped/text()'  ${SERVICE}-service/target/failsafe-reports/failsafe-summary.xml)" >> $BUILDEVENT_FILE;
 
             - buildevents/berun:
                 bename: Pact-build-and-test-special-membership-service
@@ -139,13 +142,6 @@ jobs:
                   # tag pacts as production
                   docker run --rm --net host ${PACT_CLI_IMG} broker create-version-tag --auto-create-version --pacticipant credit-score-service --version `git rev-parse --short HEAD` --tag prod --broker-base-url ${PACT_BROKER_URL} --broker-username=rw_user --broker-password=rw_pass
 
-            - when:
-                condition:
-                  bool: true # Always run!
-                steps:
-                  - run:
-                      name: Stop-dependencies-with-docker-compose
-                      command: docker-compose -f pact-tools/pact-broker/docker-compose.yml down
 
 workflows:
   build_and_test:
