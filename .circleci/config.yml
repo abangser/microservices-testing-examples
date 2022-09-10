@@ -19,8 +19,7 @@ commands:
 
     steps:
       - run:
-          touch ./step_specific_buildevents_file.txt
-          BUILDEVENT_FILE=./step_specific_buildevents_file.txt
+          BUILDEVENT_FILE=./step_specific_buildevents_file.txt;
           echo "
             ci.tests.build.completed=$(xpath -q -e 'failsafe-summary/completed/text()'  << parameters.service >>/target/failsafe-reports/failsafe-summary.xml)
             ci.tests.build.errors=$(xpath -q -e 'failsafe-summary/errors/text()'  << parameters.service >>/target/failsafe-reports/failsafe-summary.xml)
