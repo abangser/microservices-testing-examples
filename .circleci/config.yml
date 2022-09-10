@@ -67,9 +67,7 @@ jobs:
                 command: docker-compose -f pact-tools/pact-broker/docker-compose.yml up
                 background: true
 
-            - buildevents/berun:
-                bename: Build-welcome-member-email-service
-                becommand: exit 1
+            - run: exit 1
 
             - when:
                 condition: true
