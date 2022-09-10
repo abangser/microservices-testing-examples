@@ -72,7 +72,7 @@ jobs:
             mvn clean verify -pl welcome-member-email-service -Pcode-coverage -Pstatic-code-analysis
 
       - name: "Honeycomb: Finalize Build welcome-member-email-service"
-        if: always
+        if: always()
         env:
           OUTCOME: ${{ steps.build-welcome-member-email.outcome }}
           SERVICE: welcome-member-email-service
@@ -119,7 +119,7 @@ jobs:
             docker run --rm --net host ${PACT_CLI_IMG} broker create-version-tag --auto-create-version --pacticipant welcome-member-email-service --version `git rev-parse --short HEAD` --tag prod --broker-base-url ${PACT_BROKER_URL} --broker-username=rw_user --broker-password=rw_pass
 
       - name: "Honeycomb: Finalize Pact build and test welcome-member-email-service"
-        if: always
+        if: always()
         env:
           OUTCOME: ${{ steps.pact-welcome-member-email.outcome }}
         run: |
@@ -139,7 +139,7 @@ jobs:
             mvn clean verify -pl special-membership-service -Pcode-coverage -Pstatic-code-analysis
 
       - name: "Honeycomb: Finalize Build special-membership-service"
-        if: always
+        if: always()
         env:
           OUTCOME: ${{ steps.build-special-membership.outcome }}
           SERVICE: special-membership-service
@@ -184,7 +184,7 @@ jobs:
             docker run --rm --net host ${PACT_CLI_IMG} broker create-version-tag --auto-create-version --pacticipant special-membership-service --version `git rev-parse --short HEAD` --tag prod --broker-base-url ${PACT_BROKER_URL} --broker-username=rw_user --broker-password=rw_pass
 
       - name: "Honeycomb: Finalize Pact build and test special-membership-service"
-        if: always
+        if: always()
         env:
           OUTCOME: ${{ steps.pact-special-membership.outcome }}
         run: |
@@ -204,7 +204,7 @@ jobs:
             mvn clean verify -pl credit-score-service -Pcode-coverage -Pstatic-code-analysis
 
       - name: "Honeycomb: Finalize Build credit-score-service"
-        if: always
+        if: always()
         env:
           OUTCOME: ${{ steps.build-credit-score.outcome }}
           SERVICE: credit-score-service
@@ -237,7 +237,7 @@ jobs:
             docker run --rm --net host ${PACT_CLI_IMG} broker create-version-tag --auto-create-version --pacticipant credit-score-service --version `git rev-parse --short HEAD` --tag prod --broker-base-url ${PACT_BROKER_URL} --broker-username=rw_user --broker-password=rw_pass
 
       - name: "Honeycomb: Finalize Pact build and test credit-score-service"
-        if: always
+        if: always()
         env:
           OUTCOME: ${{ steps.pact-credit-score.outcome }}
         run: |
