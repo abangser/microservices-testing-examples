@@ -125,8 +125,8 @@ jobs:
           Keep in mind that if you want the global varaibles as well, you will need to
           capture them in the temporary buildevent file.
           '
-          cp $BUILDEVENT_FILE ../add-fields-buildevents_file.txt
-          BUILDEVENT_FILE=../add-fields-buildevents_file.txt
+          cp $BUILDEVENT_FILE ../tmp-buildevents_file.txt
+          BUILDEVENT_FILE=../tmp-buildevents_file.txt
           echo " span-specific-field=${GITHUB_STEP_SUMMARY}" >> $BUILDEVENT_FILE
 
           buildevents step $TRACE_ID $STEP_ID $STEP_START $STEP_ID
@@ -142,6 +142,13 @@ jobs:
 
       - name: "Honeycomb: Finish failing step"
         run: |
+          cp $BUILDEVENT_FILE ../tmp-buildevents_file.txt
+          BUILDEVENT_FILE=../tmp-buildevents_file.txt
+          : '
+          By default the step command does not send a status field. Since this step
+          is intentionally built to catch failing steps, it will be helpful to pinpoint
+          the failing step using this field rather than assuming based on last step ran.
+          '
           echo " status=${{ steps.failing-step.outcome }}" >> $BUILDEVENT_FILE
           buildevents step $TRACE_ID $STEP_ID $STEP_START $STEP_ID
         # By always running, this span will be sent even if the previous step fails.
