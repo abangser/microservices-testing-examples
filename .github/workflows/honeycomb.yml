@@ -142,7 +142,7 @@ jobs:
 
       - name: "Honeycomb: Finish failing step"
         run: |
-          echo " status=${{ steps.failing-step.outcome }}" >> $BUILDEVENTS_FILE
+          echo " status=${{ steps.failing-step.outcome }}" >> $BUILDEVENT_FILE
           buildevents step $TRACE_ID $STEP_ID $STEP_START $STEP_ID
         # By always running, this span will be sent even if the previous step fails.
         # This is important why trying to triage failing workflows.
