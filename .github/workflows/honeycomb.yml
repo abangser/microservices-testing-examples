@@ -137,7 +137,7 @@ jobs:
           echo "STEP_ID=failing-step" >> $GITHUB_ENV
           echo "STEP_START=$(date +%s)" >> $GITHUB_ENV
 
-          // Intentionally fail this step
+          # Intentionally fail this step
           false
 
       - name: "Honeycomb: Finish failing step"
