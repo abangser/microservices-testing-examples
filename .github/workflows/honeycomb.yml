@@ -24,7 +24,7 @@ jobs:
       BUILDEVENT_FILE: "../buildevents.txt"
 
     steps:
-      - uses: honeycombio/gha-buildevents@v1
+      - uses: honeycombio/gha-buildevents@v2
         with:
           # Required: a Honeycomb API key - needed to send traces.
           apikey: ${{ secrets.BUILDEVENT_APIKEY }}
